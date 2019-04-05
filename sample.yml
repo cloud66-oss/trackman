@@ -1,0 +1,20 @@
+version: 1
+metadata:
+  cloud66.com/uuid: ff97e4c6
+steps:
+  - name: list
+    command: ls -la
+    metadata:
+      cloud66.com/uuid: 8e2b4a31
+  - name: false
+    command: false
+    metadata:
+      cloud66.com/uuid: 8e2b4a31
+  - name: fail
+    command: fail
+    metadata:
+      cloud66.com/uuid: 8e2b4a3e
+  - name: sleep
+    command: sleep 10
+    metadata:
+      cloud66.com/uuid: 547c8a3c

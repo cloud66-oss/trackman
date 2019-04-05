@@ -3,9 +3,11 @@ package utils
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os/exec"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
@@ -23,10 +25,12 @@ type Spinner struct {
 	options *Options
 	cmd     string
 	args    []string
+	step    Step
+	timeout time.Duration
 }
 
 // NewSpinner creates a new instance of Spinner based on the Options
-func NewSpinner(ctx context.Context, command string, options *Options) (*Spinner, error) {
+func NewSpinner(ctx context.Context, step Step, options *Options) (*Spinner, error) {
 	if options.Sink == nil {
 		panic("no sink")
 	}
@@ -35,7 +39,7 @@ func NewSpinner(ctx context.Context, command string, options *Options) (*Spinner
 		panic("no notification manager")
 	}
 
-	parts := strings.Split(command, " ")
+	parts := strings.Split(step.Command, " ")
 	if len(parts) < 1 {
 		return nil, errors.New("bad command")
 	}
@@ -43,8 +47,10 @@ func NewSpinner(ctx context.Context, command string, options *Options) (*Spinner
 	return &Spinner{
 		uuid:    uuid.New().String(),
 		options: options,
+		step:    step,
 		cmd:     parts[0],
 		args:    parts[1:],
+		timeout: viper.GetDuration("timeout"),
 	}, nil
 }
 
@@ -52,7 +58,7 @@ func NewSpinner(ctx context.Context, command string, options *Options) (*Spinner
 func (s *Spinner) Run(ctx context.Context) error {
 	s.push(ctx, NewEvent(s, EventRunRequested, nil))
 
-	ctx, cancel := context.WithTimeout(ctx, viper.GetDuration("timeout"))
+	ctx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, s.cmd, s.args...)
@@ -72,6 +78,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 			// The program has exited with an exit code != 0
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
 				s.push(ctx, NewEvent(s, EventRunFail, status))
+				return nil
 			}
 		} else {
 			// wait error
@@ -84,7 +91,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 	if ctx.Err() == context.DeadlineExceeded {
 		s.push(ctx, NewEvent(s, EventRunTimeout, nil))
 
-		return ctx.Err()
+		return fmt.Errorf("step %s timed out after %s", s.step.Name, s.timeout)
 	}
 
 	s.push(ctx, NewEvent(s, EventRunSuccess, nil))

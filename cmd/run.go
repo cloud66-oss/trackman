@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"time"
@@ -68,16 +69,24 @@ func runExec(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	spinner, err := utils.NewSpinner(ctx, "ls -la", options)
+	workflow, err := loadWorkflow(cmd, args)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	err = spinner.Run(ctx)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	for _, step := range workflow.Steps {
+		spinner, err := utils.NewSpinner(ctx, step, options)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		err = spinner.Run(ctx)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 
 	fmt.Println("Done")
@@ -85,4 +94,24 @@ func runExec(cmd *cobra.Command, args []string) {
 
 func cleanup(ctx context.Context) {
 	notificationManager.Stop(ctx)
+}
+
+func loadWorkflow(cmd *cobra.Command, args []string) (*utils.Workflow, error) {
+	// are we sending in stream or file?
+	file, err := cmd.Flags().GetString("file")
+	if err != nil {
+		return nil, err
+	}
+
+	var reader io.Reader
+	if file == "-" {
+		reader = os.Stdin
+	} else {
+		reader, err = os.Open(file)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return utils.LoadWorkflowFromReader(reader)
 }

@@ -36,12 +36,12 @@ func NewEvent(spinner *Spinner, name string, extras interface{}) *Event {
 		Payload: Payload{
 			EventUUID:   uuid.New().String(),
 			SpinnerUUID: spinner.uuid,
-			Command:     spinner.cmd,
+			Step:        spinner.step,
 			Extras:      extras,
 		},
 	}
 }
 
 func (e *Event) String() string {
-	return fmt.Sprintf("Event: %s, Spinner: %s, Extras: %v", e.Payload.EventUUID, e.Payload.SpinnerUUID, e.Payload.Extras)
+	return fmt.Sprintf("Step: %s, Event: %s, Extras: %v", e.Payload.Step.Name, e.Name, e.Payload.Extras)
 }

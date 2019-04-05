@@ -4,6 +4,6 @@ package utils
 type Payload struct {
 	EventUUID   string
 	SpinnerUUID string
-	Command     string
+	Step        Step
 	Extras      interface{}
 }
