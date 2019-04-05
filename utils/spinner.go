@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
-	"time"
 
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 )
 
 // Options holds running options for a Spinner
@@ -52,7 +52,7 @@ func NewSpinner(ctx context.Context, command string, options *Options) (*Spinner
 func (s *Spinner) Run(ctx context.Context) error {
 	s.push(ctx, NewEvent(s, EventRunRequested, nil))
 
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, viper.GetDuration("timeout"))
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, s.cmd, s.args...)

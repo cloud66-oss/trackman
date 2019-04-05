@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 	"fmt"
+
+	"github.com/spf13/viper"
 )
 
 // NotificationManager is a singleton that makes sure notifications are sent
@@ -15,7 +17,7 @@ type NotificationManager struct {
 // NewNotificationManager creates a new NotificationManager
 func NewNotificationManager(ctx context.Context, eventNotifier EventNotifier) *NotificationManager {
 	return &NotificationManager{
-		queue:    make(chan *Event, 100),
+		queue:    make(chan *Event, viper.GetInt("queue-size")),
 		notifier: eventNotifier,
 		stopChan: make(chan struct{}, 1),
 	}

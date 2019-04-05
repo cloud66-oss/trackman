@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"time"
+
+	"github.com/spf13/viper"
 
 	"github.com/cloud66/trackman/notifiers"
 	"github.com/cloud66/trackman/utils"
@@ -24,6 +27,16 @@ var (
 
 func init() {
 	runCmd.Flags().StringVarP(&workflowFile, "file", "f", "", "workflow file to run")
+	runCmd.Flags().DurationP("timeout", "", 10*time.Second, "global timeout unless overwritten by a step")
+	runCmd.Flags().IntP("queue-size", "", 100, "usage notification queue size")
+
+	if err := viper.BindPFlag("timeout", runCmd.Flags().Lookup("timeout")); err != nil {
+		panic("cannot bind timeout")
+	}
+	if err := viper.BindPFlag("queue-size", runCmd.Flags().Lookup("queue-size")); err != nil {
+		panic("cannot bind queue-size")
+	}
+
 	rootCmd.AddCommand(runCmd)
 }
 
