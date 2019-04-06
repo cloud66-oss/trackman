@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -33,8 +34,10 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".trackman")
+		viper.AddConfigPath(".")
+		viper.AddConfigPath(filepath.Join(home, ".trackman"))
+		viper.AddConfigPath("/etc/trackman")
+		viper.SetConfigName("config")
 	}
 
 	if err := viper.ReadInConfig(); err != nil {

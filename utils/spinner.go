@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Options holds running options for a Spinner
-type Options struct {
+// SpinnerOptions provides options for a workflow
+type SpinnerOptions struct {
 	Sink                *SpinnerSink
 	NotificationManager *NotificationManager
 }
@@ -22,7 +22,7 @@ type Options struct {
 // Spinner is the main component that runs a process
 type Spinner struct {
 	uuid    string
-	options *Options
+	options *SpinnerOptions
 	cmd     string
 	args    []string
 	step    Step
@@ -30,7 +30,7 @@ type Spinner struct {
 }
 
 // NewSpinner creates a new instance of Spinner based on the Options
-func NewSpinner(ctx context.Context, step Step, options *Options) (*Spinner, error) {
+func NewSpinner(ctx context.Context, step Step, options *SpinnerOptions) (*Spinner, error) {
 	if options.Sink == nil {
 		panic("no sink")
 	}

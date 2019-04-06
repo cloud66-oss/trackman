@@ -47,56 +47,34 @@ func runExec(cmd *cobra.Command, args []string) {
 	notificationManager = utils.NewNotificationManager(ctx, &notifiers.ConsoleNotifier{})
 	defer notificationManager.Close(ctx)
 
+	options := &utils.WorkflowOptions{
+		NotificationManager: notificationManager,
+	}
+
+	workflow, err := loadWorkflow(cmd, args, options)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
 		<-signalChan
 		fmt.Println("\nReceived an interrupt, stopping services...")
-		cleanup(ctx)
+		workflow.Stop(ctx)
 	}()
 
-	options := &utils.Options{
-		Sink: &utils.SpinnerSink{
-			StdOut: os.Stdout,
-			StdErr: os.Stderr,
-		},
-		NotificationManager: notificationManager,
-	}
-
-	err := notificationManager.Start(ctx)
+	err = workflow.Run(ctx)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
-	}
-
-	workflow, err := loadWorkflow(cmd, args)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	for _, step := range workflow.Steps {
-		spinner, err := utils.NewSpinner(ctx, step, options)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		err = spinner.Run(ctx)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
 	}
 
 	fmt.Println("Done")
 }
 
-func cleanup(ctx context.Context) {
-	notificationManager.Stop(ctx)
-}
-
-func loadWorkflow(cmd *cobra.Command, args []string) (*utils.Workflow, error) {
+func loadWorkflow(cmd *cobra.Command, args []string, options *utils.WorkflowOptions) (*utils.Workflow, error) {
 	// are we sending in stream or file?
 	file, err := cmd.Flags().GetString("file")
 	if err != nil {
@@ -113,5 +91,5 @@ func loadWorkflow(cmd *cobra.Command, args []string) (*utils.Workflow, error) {
 		}
 	}
 
-	return utils.LoadWorkflowFromReader(reader)
+	return utils.LoadWorkflowFromReader(reader, options)
 }
