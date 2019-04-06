@@ -16,3 +16,8 @@ func (c *ConsoleNotifier) Notify(ctx context.Context, event utils.Event) error {
 
 	return nil
 }
+
+// NewConsoleNotifier creates a new console notifier
+func NewConsoleNotifier(ctx context.Context) (utils.EventNotifier, error) {
+	return &ConsoleNotifier{}, nil
+}

@@ -15,7 +15,7 @@ import (
 
 // SpinnerOptions provides options for a workflow
 type SpinnerOptions struct {
-	Sink                *SpinnerSink
+	Sink                *Sink
 	NotificationManager *NotificationManager
 }
 

@@ -2,8 +2,8 @@ package utils
 
 import "io"
 
-// SpinnerSink is where Spinners send their output
-type SpinnerSink struct {
+// Sink is where workflow / spinners send their output
+type Sink struct {
 	StdOut   io.Writer
 	StdErr   io.Writer
 	Notifier EventNotifier
