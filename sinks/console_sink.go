@@ -7,10 +7,12 @@ import (
 	"github.com/cloud66/trackman/utils"
 )
 
-func NewConsoleSink(ctx context.Context, notifier utils.EventNotifier) (*utils.Sink, error) {
-	return &utils.Sink{
-		StdOut:   os.Stdout,
-		StdErr:   os.Stderr,
-		Notifier: notifier,
+// NewConsoleSink returns a console sink. This is a basic sink just to
+// dump values onto the screen.
+func NewConsoleSink(ctx context.Context, notifier utils.EventNotifier) (*utils.SinkOptions, error) {
+	return &utils.SinkOptions{
+		Notifier:   notifier,
+		ErrChannel: os.Stderr,
+		OutChannel: os.Stdout,
 	}, nil
 }

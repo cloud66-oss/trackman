@@ -15,7 +15,7 @@ import (
 
 // SpinnerOptions provides options for a workflow
 type SpinnerOptions struct {
-	Sink                *Sink
+	Sink                *SinkOptions
 	NotificationManager *NotificationManager
 }
 
@@ -62,8 +62,8 @@ func (s *Spinner) Run(ctx context.Context) error {
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, s.cmd, s.args...)
-	cmd.Stderr = s.options.Sink.StdErr
-	cmd.Stdout = s.options.Sink.StdOut
+	cmd.Stderr = s.options.Sink.ErrChannel
+	cmd.Stdout = s.options.Sink.OutChannel
 	err := cmd.Start()
 	if err != nil {
 		s.push(ctx, NewEvent(s, EventRunError, nil))

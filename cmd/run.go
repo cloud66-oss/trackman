@@ -52,7 +52,7 @@ func runExec(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	sink, err := sinks.NewConsoleSink(ctx, notifier)
+	sink, err := sinks.NewLogSink(ctx, notifier)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

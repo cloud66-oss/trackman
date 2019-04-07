@@ -13,7 +13,7 @@ import (
 // WorkflowOptions provides options for a workflow
 type WorkflowOptions struct {
 	NotificationManager *NotificationManager
-	Sink                *Sink
+	Sink                *SinkOptions
 }
 
 // Workflow is the internal object to hold a workflow file

@@ -2,9 +2,9 @@ package utils
 
 import "io"
 
-// Sink is where workflow / spinners send their output
-type Sink struct {
-	StdOut   io.Writer
-	StdErr   io.Writer
-	Notifier EventNotifier
+// SinkOptions is where workflow / spinners send their output
+type SinkOptions struct {
+	Notifier   EventNotifier
+	OutChannel io.Writer
+	ErrChannel io.Writer
 }
