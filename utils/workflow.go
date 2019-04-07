@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 
 	"gopkg.in/yaml.v2"
 )
 
 // WorkflowOptions provides options for a workflow
 type WorkflowOptions struct {
-	NotificationManager *NotificationManager
+	Notifier func(ctx context.Context, event *Event) error
 }
 
 // Workflow is the internal object to hold a workflow file
@@ -35,8 +34,12 @@ func LoadWorkflowFromBytes(buff []byte, options *WorkflowOptions) (*Workflow, er
 	if options == nil {
 		panic("no options")
 	}
-	if options.NotificationManager == nil {
-		panic("no notification manager")
+	if options.Notifier == nil {
+		options.Notifier = func(ctx context.Context, event *Event) error {
+			fmt.Println(event.String())
+
+			return nil
+		}
 	}
 
 	workflow.options = options
@@ -58,13 +61,7 @@ func LoadWorkflowFromReader(reader io.Reader, options *WorkflowOptions) (*Workfl
 func (w *Workflow) Run(ctx context.Context) error {
 	// TODO: override if specified
 	options := &SpinnerOptions{
-		NotificationManager: w.options.NotificationManager,
-	}
-
-	err := w.options.NotificationManager.Start(ctx)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		Notifier: w.options.Notifier,
 	}
 
 	for _, step := range w.Steps {
@@ -80,9 +77,4 @@ func (w *Workflow) Run(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-// Stop stops the run
-func (w *Workflow) Stop(ctx context.Context) {
-	w.options.NotificationManager.Stop(ctx)
 }

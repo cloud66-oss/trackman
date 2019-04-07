@@ -7,11 +7,8 @@ import (
 	"github.com/cloud66/trackman/utils"
 )
 
-// ConsoleNotifier dumps events onto the console
-type ConsoleNotifier struct{}
-
-// Notify implements the interface
-func (c *ConsoleNotifier) Notify(ctx context.Context, event utils.Event) error {
+// ConsoleNotify writes notifications to console
+func ConsoleNotify(ctx context.Context, event *utils.Event) error {
 	switch event.Name {
 	case utils.EventRunRequested:
 		fmt.Printf("[%s] Starting\n", event.Payload.Step.Name)
@@ -30,9 +27,4 @@ func (c *ConsoleNotifier) Notify(ctx context.Context, event utils.Event) error {
 	}
 
 	return nil
-}
-
-// NewConsoleNotifier creates a new console notifier
-func NewConsoleNotifier(ctx context.Context) (utils.EventNotifier, error) {
-	return &ConsoleNotifier{}, nil
 }

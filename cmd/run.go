@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"time"
 
 	"github.com/spf13/viper"
@@ -22,8 +21,7 @@ var runCmd = &cobra.Command{
 }
 
 var (
-	workflowFile        string
-	notificationManager *utils.NotificationManager
+	workflowFile string
 )
 
 func init() {
@@ -44,17 +42,8 @@ func init() {
 func runExec(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 
-	notifier, err := notifiers.NewConsoleNotifier(ctx)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	notificationManager = utils.NewNotificationManager(ctx, notifier)
-	defer notificationManager.Close(ctx)
-
 	options := &utils.WorkflowOptions{
-		NotificationManager: notificationManager,
+		Notifier: notifiers.ConsoleNotify,
 	}
 
 	workflow, err := loadWorkflow(cmd, args, options)
@@ -62,14 +51,6 @@ func runExec(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	go func() {
-		<-signalChan
-		fmt.Println("\nReceived an interrupt, stopping services...")
-		workflow.Stop(ctx)
-	}()
 
 	err = workflow.Run(ctx)
 	if err != nil {

@@ -17,7 +17,7 @@ import (
 
 // SpinnerOptions provides options for a workflow
 type SpinnerOptions struct {
-	NotificationManager *NotificationManager
+	Notifier func(ctx context.Context, event *Event) error
 }
 
 // Spinner is the main component that runs a process
@@ -32,8 +32,12 @@ type Spinner struct {
 
 // NewSpinner creates a new instance of Spinner based on the Options
 func NewSpinner(ctx context.Context, step Step, options *SpinnerOptions) (*Spinner, error) {
-	if options.NotificationManager == nil {
-		panic("no notification manager")
+	if options.Notifier == nil {
+		options.Notifier = func(ctx context.Context, event *Event) error {
+			fmt.Println(event.String())
+
+			return nil
+		}
 	}
 
 	parts := strings.Split(step.Command, " ")
@@ -105,5 +109,8 @@ func (s *Spinner) Run(ctx context.Context) error {
 }
 
 func (s *Spinner) push(ctx context.Context, event *Event) {
-	s.options.NotificationManager.Push(ctx, event)
+	err := s.options.Notifier(ctx, event)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
