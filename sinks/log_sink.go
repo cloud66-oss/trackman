@@ -9,11 +9,11 @@ import (
 )
 
 // NewLogSink creates a new LogSink
-func NewLogSink(ctx context.Context, notifier utils.EventNotifier) (*utils.SinkOptions, error) {
-	outWriter := utils.NewLogWriter(ctx, logrus.InfoLevel)
-	errWriter := utils.NewLogWriter(ctx, logrus.ErrorLevel)
+func NewLogSink(ctx context.Context, notifier utils.EventNotifier, spinner *utils.Spinner) (*utils.Sink, error) {
+	outWriter := utils.NewLogWriter(ctx, logrus.InfoLevel, spinner)
+	errWriter := utils.NewLogWriter(ctx, logrus.ErrorLevel, spinner)
 
-	return &utils.SinkOptions{
+	return &utils.Sink{
 		Notifier:   notifier,
 		ErrChannel: errWriter,
 		OutChannel: outWriter,

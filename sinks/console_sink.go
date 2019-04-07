@@ -9,8 +9,8 @@ import (
 
 // NewConsoleSink returns a console sink. This is a basic sink just to
 // dump values onto the screen.
-func NewConsoleSink(ctx context.Context, notifier utils.EventNotifier) (*utils.SinkOptions, error) {
-	return &utils.SinkOptions{
+func NewConsoleSink(ctx context.Context, notifier utils.EventNotifier) (*utils.Sink, error) {
+	return &utils.Sink{
 		Notifier:   notifier,
 		ErrChannel: os.Stderr,
 		OutChannel: os.Stdout,

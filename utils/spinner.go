@@ -15,8 +15,8 @@ import (
 
 // SpinnerOptions provides options for a workflow
 type SpinnerOptions struct {
-	Sink                *SinkOptions
 	NotificationManager *NotificationManager
+	Sink                *Sink
 }
 
 // Spinner is the main component that runs a process
@@ -31,12 +31,11 @@ type Spinner struct {
 
 // NewSpinner creates a new instance of Spinner based on the Options
 func NewSpinner(ctx context.Context, step Step, options *SpinnerOptions) (*Spinner, error) {
-	if options.Sink == nil {
-		panic("no sink")
-	}
-
 	if options.NotificationManager == nil {
 		panic("no notification manager")
+	}
+	if options.Sink == nil {
+		panic("no sink")
 	}
 
 	parts := strings.Split(step.Command, " ")

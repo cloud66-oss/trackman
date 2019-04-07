@@ -10,8 +10,9 @@ import (
 // LogWriter implements io.Writer so it can be used to dump a process output
 // but links it to logrus
 type LogWriter struct {
-	entry *logrus.Entry
-	level logrus.Level
+	entry   *logrus.Entry
+	level   logrus.Level
+	spinner *Spinner
 }
 
 // Write implements io.Writer
@@ -23,16 +24,23 @@ func (l *LogWriter) Write(b []byte) (int, error) {
 
 	// we want each line to show on its own
 	for _, line := range strings.Split(string(b), "\n") {
-		l.entry.Log(l.level, line)
+		if l.spinner != nil {
+			l.entry.WithField("process", l.spinner.uuid).Log(l.level, line)
+		} else {
+			l.entry.Log(l.level, line)
+		}
 	}
 
 	return n, nil
 }
 
 // NewLogWriter creates a new LogWriter
-func NewLogWriter(ctx context.Context, level logrus.Level) *LogWriter {
+func NewLogWriter(ctx context.Context, level logrus.Level, spinner *Spinner) *LogWriter {
+	logger := logrus.New()
+	logger.SetFormatter(&SpinFormatter{})
 	return &LogWriter{
-		entry: logrus.StandardLogger().WithContext(ctx),
-		level: level,
+		entry:   logger.WithContext(ctx),
+		level:   level,
+		spinner: spinner,
 	}
 }
