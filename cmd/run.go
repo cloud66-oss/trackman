@@ -8,8 +8,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/cloud66/trackman/sinks"
-
 	"github.com/spf13/viper"
 
 	"github.com/cloud66/trackman/notifiers"
@@ -52,18 +50,11 @@ func runExec(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	sink, err := sinks.NewLogSink(ctx, notifier, nil)
-	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
-	}
-
 	notificationManager = utils.NewNotificationManager(ctx, notifier)
 	defer notificationManager.Close(ctx)
 
 	options := &utils.WorkflowOptions{
 		NotificationManager: notificationManager,
-		Sink:                sink,
 	}
 
 	workflow, err := loadWorkflow(cmd, args, options)

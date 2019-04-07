@@ -35,12 +35,17 @@ func (l *LogWriter) Write(b []byte) (int, error) {
 }
 
 // NewLogWriter creates a new LogWriter
-func NewLogWriter(ctx context.Context, level logrus.Level, spinner *Spinner) *LogWriter {
+func NewLogWriter(ctx context.Context, level logrus.Level) *LogWriter {
 	logger := logrus.New()
 	logger.SetFormatter(&SpinFormatter{})
-	return &LogWriter{
-		entry:   logger.WithContext(ctx),
-		level:   level,
-		spinner: spinner,
+	lw := &LogWriter{
+		entry: logger.WithContext(ctx),
+		level: level,
 	}
+
+	if ctx.Value(ctxSpinner) != nil {
+		lw.spinner = ctx.Value(ctxSpinner).(*Spinner)
+	}
+
+	return lw
 }

@@ -13,7 +13,6 @@ import (
 // WorkflowOptions provides options for a workflow
 type WorkflowOptions struct {
 	NotificationManager *NotificationManager
-	Sink                *Sink
 }
 
 // Workflow is the internal object to hold a workflow file
@@ -35,9 +34,6 @@ func LoadWorkflowFromBytes(buff []byte, options *WorkflowOptions) (*Workflow, er
 
 	if options == nil {
 		panic("no options")
-	}
-	if options.Sink == nil {
-		panic("no sink")
 	}
 	if options.NotificationManager == nil {
 		panic("no notification manager")
@@ -62,7 +58,6 @@ func LoadWorkflowFromReader(reader io.Reader, options *WorkflowOptions) (*Workfl
 func (w *Workflow) Run(ctx context.Context) error {
 	// TODO: override if specified
 	options := &SpinnerOptions{
-		Sink:                w.options.Sink,
 		NotificationManager: w.options.NotificationManager,
 	}
 

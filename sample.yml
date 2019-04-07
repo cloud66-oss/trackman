@@ -6,6 +6,8 @@ steps:
     command: ls -la
     metadata:
       cloud66.com/uuid: 8e2b4a31
+  - name: env
+    command: echo $USER
   - name: false
     command: false
     metadata:

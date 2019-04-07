@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
 )
@@ -16,7 +18,6 @@ import (
 // SpinnerOptions provides options for a workflow
 type SpinnerOptions struct {
 	NotificationManager *NotificationManager
-	Sink                *Sink
 }
 
 // Spinner is the main component that runs a process
@@ -34,23 +35,22 @@ func NewSpinner(ctx context.Context, step Step, options *SpinnerOptions) (*Spinn
 	if options.NotificationManager == nil {
 		panic("no notification manager")
 	}
-	if options.Sink == nil {
-		panic("no sink")
-	}
 
 	parts := strings.Split(step.Command, " ")
 	if len(parts) < 1 {
 		return nil, errors.New("bad command")
 	}
 
-	return &Spinner{
+	spinner := &Spinner{
 		uuid:    uuid.New().String(),
 		options: options,
 		step:    step,
 		cmd:     parts[0],
 		args:    parts[1:],
 		timeout: viper.GetDuration("timeout"),
-	}, nil
+	}
+
+	return spinner, nil
 }
 
 // Run runs the process required
@@ -60,9 +60,15 @@ func (s *Spinner) Run(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
+	// add this spinner to the context for the log writers
+	ctx = context.WithValue(ctx, ctxSpinner, s)
+
+	outChannel := NewLogWriter(ctx, logrus.InfoLevel)
+	errChannel := NewLogWriter(ctx, logrus.ErrorLevel)
+
 	cmd := exec.CommandContext(ctx, s.cmd, s.args...)
-	cmd.Stderr = s.options.Sink.ErrChannel
-	cmd.Stdout = s.options.Sink.OutChannel
+	cmd.Stderr = errChannel
+	cmd.Stdout = outChannel
 	err := cmd.Start()
 	if err != nil {
 		s.push(ctx, NewEvent(s, EventRunError, nil))

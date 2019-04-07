@@ -21,6 +21,9 @@ func (f *SpinFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		b = &bytes.Buffer{}
 	}
 
+	if entry.Data["process"] != nil {
+		_, _ = fmt.Fprintf(b, "[%s]", entry.Data["process"])
+	}
 	b.WriteString(" --> ")
 	if entry.Level == logrus.ErrorLevel {
 		_, _ = fmt.Fprintf(b, "\x1b[31m%s\x1b[0m", entry.Message)
