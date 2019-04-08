@@ -7,8 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/spf13/viper"
 
 	"github.com/cloud66/trackman/notifiers"
@@ -29,13 +27,9 @@ var (
 func init() {
 	runCmd.Flags().StringVarP(&workflowFile, "file", "f", "", "workflow file to run")
 	runCmd.Flags().DurationP("timeout", "", 10*time.Second, "global timeout unless overwritten by a step")
-	runCmd.Flags().IntP("queue-size", "", 100, "usage notification queue size")
 
 	if err := viper.BindPFlag("timeout", runCmd.Flags().Lookup("timeout")); err != nil {
 		panic("cannot bind timeout")
-	}
-	if err := viper.BindPFlag("queue-size", runCmd.Flags().Lookup("queue-size")); err != nil {
-		panic("cannot bind queue-size")
 	}
 
 	rootCmd.AddCommand(runCmd)
@@ -43,8 +37,7 @@ func init() {
 
 func runExec(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
-	logger := logrus.New()
-	//logger.SetFormatter(&utils.SpinFormatter{})
+	logger := utils.GetLogger(ctx)
 	ctx = context.WithValue(ctx, utils.CtxLogger, logger)
 
 	options := &utils.WorkflowOptions{

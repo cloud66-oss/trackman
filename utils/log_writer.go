@@ -7,6 +7,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	FldStep = "step"
+)
+
 // LogWriter implements io.Writer so it can be used to dump a process output
 // but links it to logrus
 type LogWriter struct {
@@ -25,7 +29,7 @@ func (l *LogWriter) Write(b []byte) (int, error) {
 	// we want each line to show on its own
 	for _, line := range strings.Split(string(b), "\n") {
 		if l.spinner != nil {
-			l.entry.WithField("process", l.spinner.Step.Name).Log(l.level, line)
+			l.entry.WithField(FldStep, l.spinner.Step.Name).Log(l.level, line)
 		} else {
 			l.entry.Log(l.level, line)
 		}
@@ -36,8 +40,7 @@ func (l *LogWriter) Write(b []byte) (int, error) {
 
 // NewLogWriter creates a new LogWriter
 func NewLogWriter(ctx context.Context, level logrus.Level) *LogWriter {
-	logger := logrus.New()
-	logger.SetFormatter(&SpinFormatter{})
+	logger := GetLogger(ctx)
 	lw := &LogWriter{
 		entry: logger.WithContext(ctx),
 		level: level,

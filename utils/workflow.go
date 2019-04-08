@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 
 	"github.com/sirupsen/logrus"
-
 	"gopkg.in/yaml.v2"
 )
 
@@ -62,11 +61,8 @@ func LoadWorkflowFromReader(reader io.Reader, options *WorkflowOptions) (*Workfl
 
 // Run runs the entire workflow
 func (w *Workflow) Run(ctx context.Context) error {
-	if ctx.Value(CtxLogger) == nil {
-		w.logger = logrus.New()
-	} else {
-		w.logger = ctx.Value(CtxLogger).(*logrus.Logger)
-	}
+	w.logger = GetLogger(ctx)
+	ctx = context.WithValue(ctx, CtxLogger, w.logger)
 
 	// TODO: override if specified
 	options := &SpinnerOptions{
@@ -85,7 +81,7 @@ func (w *Workflow) Run(ctx context.Context) error {
 				return err
 			}
 
-			w.logger.WithField("process", spinner.Step.Name).Error(err)
+			w.logger.WithField(FldStep, spinner.Step.Name).Error(err)
 
 		}
 	}

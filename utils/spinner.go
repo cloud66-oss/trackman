@@ -51,7 +51,12 @@ func NewSpinner(ctx context.Context, step Step, options *SpinnerOptions) (*Spinn
 		Step:    step,
 		cmd:     expandedCommand,
 		args:    step.Args,
-		timeout: viper.GetDuration("timeout"),
+	}
+
+	if step.Timeout != nil {
+		spinner.timeout = *step.Timeout
+	} else {
+		spinner.timeout = viper.GetDuration("timeout")
 	}
 
 	return spinner, nil
@@ -64,19 +69,23 @@ func (s *Spinner) Run(ctx context.Context) error {
 	cmdCtx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
-	if ctx.Value(CtxLogger) == nil {
-		ctx = context.WithValue(ctx, CtxLogger, logrus.New())
-	}
+	logger := GetLogger(ctx)
+	ctx = context.WithValue(ctx, CtxLogger, logger)
 
 	// add this spinner to the context for the log writers
 	ctx = context.WithValue(ctx, CtxSpinner, s)
 
-	outChannel := NewLogWriter(ctx, logrus.InfoLevel)
+	outChannel := NewLogWriter(ctx, logrus.DebugLevel)
 	errChannel := NewLogWriter(ctx, logrus.ErrorLevel)
 
 	cmd := exec.CommandContext(cmdCtx, s.cmd, s.args...)
 	cmd.Stderr = errChannel
 	cmd.Stdout = outChannel
+
+	if s.Step.Workdir != "" {
+		cmd.Dir = os.ExpandEnv(s.Step.Workdir)
+	}
+
 	err := cmd.Start()
 	if err != nil {
 		s.push(ctx, NewEvent(s, EventRunError, nil))

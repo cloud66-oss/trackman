@@ -22,6 +22,9 @@ var (
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
+	rootCmd.PersistentFlags().String("log-level", "info", "log level. Use debug to see process output")
+
+	_ = viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
 }
 
 func initConfig() {

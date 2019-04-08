@@ -12,8 +12,6 @@ steps:
     args: ["$USER"]
   - name: false
     command: false
-    metadata:
-      cloud66.com/uuid: 8e2b4a31
   - name: fail
     command: fail
     metadata:
@@ -21,6 +19,16 @@ steps:
     stop_on_fail: false
   - name: sleep
     command: sleep
-    args: ["10"]
+    args: ["30"]
+    timeout: 1s
     metadata:
       cloud66.com/uuid: 547c8a3c
+  - name: trapper
+    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    command: ruby
+    args: ["trapper.rb"]
+    timeout: 1s
+  - name: piper
+    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    command: ruby
+    args: ["piper.rb"]
