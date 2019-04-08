@@ -21,7 +21,8 @@ type Step struct {
 	Workdir        string            `yaml:"workdir"`
 	Probe          *Probe            `yaml:"probe"`
 
-	options *StepOptions
+	options  *StepOptions
+	workflow Workflow
 }
 
 // GetMetaData returns metadata value of the key from this Step.
@@ -33,4 +34,27 @@ func (s *Step) GetMetaData(key string) string {
 	}
 
 	return s.Metadata[key]
+}
+
+// Run runs a step and its probe
+func (s *Step) Run(ctx context.Context) error {
+	logger := GetLogger(ctx)
+	ctx = context.WithValue(ctx, CtxLogger, logger)
+
+	spinner, err := NewSpinnerForStep(ctx, *s)
+	if err != nil {
+		return err
+	}
+
+	err = spinner.Run(ctx)
+	if err != nil {
+		if !s.ContinueOnFail {
+			return err
+		}
+
+		logger.WithField(FldStep, s.Name).Error(err)
+	}
+
+	return nil
+
 }

@@ -71,18 +71,9 @@ func (w *Workflow) Run(ctx context.Context) error {
 
 	for _, step := range w.Steps {
 		step.options = options
-		spinner, err := NewSpinnerForStep(ctx, step)
+		err := step.Run(ctx)
 		if err != nil {
 			return err
-		}
-
-		err = spinner.Run(ctx)
-		if err != nil {
-			if !step.ContinueOnFail {
-				return err
-			}
-
-			w.logger.WithField(FldStep, spinner.StepName).Error(err)
 		}
 	}
 
