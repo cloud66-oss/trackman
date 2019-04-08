@@ -95,8 +95,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 	cmdCtx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
-	logger := GetLogger(ctx)
-	ctx = context.WithValue(ctx, CtxLogger, logger)
+	_, ctx = LoggerContext(ctx)
 
 	// add this spinner to the context for the log writers
 	ctx = context.WithValue(ctx, CtxSpinner, s)

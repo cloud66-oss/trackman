@@ -18,7 +18,7 @@ var (
 )
 
 // GetLogger returns a new or existing logger from the context
-func GetLogger(ctx context.Context) *logrus.Logger {
+func getLogger(ctx context.Context) *logrus.Logger {
 	var logger *logrus.Logger
 	if ctx.Value(CtxLogger) == nil {
 		logger = logrus.New()
@@ -32,4 +32,11 @@ func GetLogger(ctx context.Context) *logrus.Logger {
 	}
 
 	return logger
+}
+
+func LoggerContext(ctx context.Context) (*logrus.Logger, context.Context) {
+	logger := getLogger(ctx)
+	ctx = context.WithValue(ctx, CtxLogger, logger)
+
+	return logger, ctx
 }

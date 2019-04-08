@@ -8,7 +8,7 @@ import (
 
 // ConsoleNotify writes notifications to console
 func ConsoleNotify(ctx context.Context, event *utils.Event) error {
-	logger := utils.GetLogger(ctx)
+	logger, ctx := utils.LoggerContext(ctx)
 
 	switch event.Name {
 	case utils.EventRunRequested:

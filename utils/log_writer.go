@@ -41,7 +41,8 @@ func (l *LogWriter) Write(b []byte) (int, error) {
 
 // NewLogWriter creates a new LogWriter
 func NewLogWriter(ctx context.Context, level logrus.Level) *LogWriter {
-	logger := GetLogger(ctx)
+	logger, ctx := LoggerContext(ctx)
+
 	lw := &LogWriter{
 		entry: logger.WithContext(ctx),
 		level: level,

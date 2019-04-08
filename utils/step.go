@@ -38,8 +38,7 @@ func (s *Step) GetMetaData(key string) string {
 
 // Run runs a step and its probe
 func (s *Step) Run(ctx context.Context) error {
-	logger := GetLogger(ctx)
-	ctx = context.WithValue(ctx, CtxLogger, logger)
+	logger, ctx := LoggerContext(ctx)
 
 	spinner, err := NewSpinnerForStep(ctx, *s)
 	if err != nil {

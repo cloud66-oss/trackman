@@ -37,8 +37,7 @@ func init() {
 
 func runExec(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
-	logger := utils.GetLogger(ctx)
-	ctx = context.WithValue(ctx, utils.CtxLogger, logger)
+	logger, ctx := utils.LoggerContext(ctx)
 
 	options := &utils.WorkflowOptions{
 		Notifier: notifiers.ConsoleNotify,

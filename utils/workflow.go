@@ -61,8 +61,7 @@ func LoadWorkflowFromReader(reader io.Reader, options *WorkflowOptions) (*Workfl
 
 // Run runs the entire workflow
 func (w *Workflow) Run(ctx context.Context) error {
-	w.logger = GetLogger(ctx)
-	ctx = context.WithValue(ctx, CtxLogger, w.logger)
+	w.logger, ctx = LoggerContext(ctx)
 
 	// TODO: override if specified
 	options := &StepOptions{
