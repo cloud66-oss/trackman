@@ -30,7 +30,7 @@ func (l *LogWriter) Write(b []byte) (int, error) {
 	// we want each line to show on its own
 	for _, line := range strings.Split(string(b), "\n") {
 		if l.spinner != nil {
-			l.entry.WithField(FldStep, l.spinner.Step.Name).Log(l.level, line)
+			l.entry.WithField(FldStep, l.spinner.StepName).Log(l.level, line)
 		} else {
 			l.entry.Log(l.level, line)
 		}

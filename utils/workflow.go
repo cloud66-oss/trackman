@@ -82,8 +82,7 @@ func (w *Workflow) Run(ctx context.Context) error {
 				return err
 			}
 
-			w.logger.WithField(FldStep, spinner.Step.Name).Error(err)
-
+			w.logger.WithField(FldStep, spinner.StepName).Error(err)
 		}
 	}
 

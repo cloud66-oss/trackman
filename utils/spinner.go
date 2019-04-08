@@ -19,9 +19,10 @@ type Spinner struct {
 	args    []string
 	timeout time.Duration
 	workdir string
+	step    Step
 
-	UUID string
-	Step Step
+	UUID     string
+	StepName string // StepName is used for logging
 }
 
 // NewSpinnerForStep creates a new instance of Spinner based on the Options
@@ -46,10 +47,11 @@ func newSpinnerForStep(ctx context.Context, step Step) *Spinner {
 	}
 
 	return &Spinner{
-		UUID: uuid.New().String(),
-		Step: step,
-		cmd:  step.Command,
-		args: step.Args,
+		UUID:     uuid.New().String(),
+		StepName: step.Name,
+		cmd:      step.Command,
+		args:     step.Args,
+		step:     step,
 	}
 }
 
@@ -59,23 +61,24 @@ func newSpinnerForProbe(ctx context.Context, step Step) *Spinner {
 	}
 
 	return &Spinner{
-		UUID: uuid.New().String(),
-		Step: step,
-		cmd:  step.Probe.Command,
-		args: step.Probe.Args,
+		UUID:     uuid.New().String(),
+		StepName: step.Name,
+		cmd:      step.Probe.Command,
+		args:     step.Probe.Args,
+		step:     step,
 	}
 }
 
 func (s *Spinner) expandEnvVars(ctx context.Context) {
-	expandedCommand := os.ExpandEnv(s.Step.Command)
+	expandedCommand := os.ExpandEnv(s.step.Command)
 	s.cmd = expandedCommand
 
 	for idx, item := range s.args {
 		s.args[idx] = os.ExpandEnv(item)
 	}
 
-	if s.Step.Timeout != nil {
-		s.timeout = *s.Step.Timeout
+	if s.step.Timeout != nil {
+		s.timeout = *s.step.Timeout
 	} else {
 		s.timeout = viper.GetDuration("timeout")
 	}
@@ -118,7 +121,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 		if cmdCtx.Err() == context.DeadlineExceeded {
 			s.push(ctx, NewEvent(s, EventRunTimeout, nil))
 
-			return fmt.Errorf("step %s timed out after %s", s.Step.Name, s.timeout)
+			return fmt.Errorf("step %s timed out after %s", s.step.Name, s.timeout)
 		}
 
 		if exitErr, ok := err.(*exec.ExitError); ok {
@@ -141,7 +144,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 }
 
 func (s *Spinner) push(ctx context.Context, event *Event) {
-	err := s.Step.options.Notifier(ctx, event)
+	err := s.step.options.Notifier(ctx, event)
 	if err != nil {
 		fmt.Println(err)
 	}

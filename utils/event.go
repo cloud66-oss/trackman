@@ -36,7 +36,7 @@ func NewEvent(spinner *Spinner, name string, extras interface{}) *Event {
 		Payload: Payload{
 			EventUUID: uuid.New().String(),
 			Spinner:   spinner,
-			Step:      spinner.Step,
+			Step:      spinner.step,
 			Extras:    extras,
 		},
 	}
