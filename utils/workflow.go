@@ -65,19 +65,20 @@ func (w *Workflow) Run(ctx context.Context) error {
 	ctx = context.WithValue(ctx, CtxLogger, w.logger)
 
 	// TODO: override if specified
-	options := &SpinnerOptions{
+	options := &StepOptions{
 		Notifier: w.options.Notifier,
 	}
 
 	for _, step := range w.Steps {
-		spinner, err := NewSpinner(ctx, step, options)
+		step.options = options
+		spinner, err := NewSpinnerForStep(ctx, step)
 		if err != nil {
 			return err
 		}
 
 		err = spinner.Run(ctx)
 		if err != nil {
-			if step.StopOnFail {
+			if !step.ContinueOnFail {
 				return err
 			}
 

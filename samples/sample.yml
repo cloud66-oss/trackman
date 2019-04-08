@@ -16,7 +16,7 @@ steps:
     command: fail
     metadata:
       cloud66.com/uuid: 8e2b4a3e
-    stop_on_fail: false
+    continue_on_fail: true
   - name: sleep
     command: sleep
     args: ["30"]
@@ -32,3 +32,7 @@ steps:
     workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
     command: ruby
     args: ["piper.rb"]
+    probe:
+      command: ruby
+      workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+      args: ["-e", "puts", "'a'"]

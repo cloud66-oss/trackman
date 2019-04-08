@@ -13,53 +13,76 @@ import (
 	"github.com/spf13/viper"
 )
 
-// SpinnerOptions provides options for a workflow
-type SpinnerOptions struct {
-	Notifier func(ctx context.Context, event *Event) error
-}
-
 // Spinner is the main component that runs a process
 type Spinner struct {
-	options *SpinnerOptions
 	cmd     string
 	args    []string
 	timeout time.Duration
+	workdir string
 
 	UUID string
 	Step Step
 }
 
-// NewSpinner creates a new instance of Spinner based on the Options
-func NewSpinner(ctx context.Context, step Step, options *SpinnerOptions) (*Spinner, error) {
-	if options.Notifier == nil {
-		options.Notifier = func(ctx context.Context, event *Event) error {
-			fmt.Println(event.String())
-
-			return nil
-		}
-	}
-
-	expandedCommand := os.ExpandEnv(step.Command)
-
-	for idx, item := range step.Args {
-		step.Args[idx] = os.ExpandEnv(item)
-	}
-
-	spinner := &Spinner{
-		UUID:    uuid.New().String(),
-		options: options,
-		Step:    step,
-		cmd:     expandedCommand,
-		args:    step.Args,
-	}
-
-	if step.Timeout != nil {
-		spinner.timeout = *step.Timeout
-	} else {
-		spinner.timeout = viper.GetDuration("timeout")
-	}
+// NewSpinnerForStep creates a new instance of Spinner based on the Options
+func NewSpinnerForStep(ctx context.Context, step Step) (*Spinner, error) {
+	spinner := newSpinnerForStep(ctx, step)
+	spinner.expandEnvVars(ctx)
 
 	return spinner, nil
+}
+
+// NewSpinnerForProbe creates a new instance of Spinner based on the Options
+func NewSpinnerForProbe(ctx context.Context, step Step) (*Spinner, error) {
+	spinner := newSpinnerForProbe(ctx, step)
+	spinner.expandEnvVars(ctx)
+
+	return spinner, nil
+}
+
+func newSpinnerForStep(ctx context.Context, step Step) *Spinner {
+	if step.options == nil {
+		panic("no options")
+	}
+
+	return &Spinner{
+		UUID: uuid.New().String(),
+		Step: step,
+		cmd:  step.Command,
+		args: step.Args,
+	}
+}
+
+func newSpinnerForProbe(ctx context.Context, step Step) *Spinner {
+	if step.options == nil {
+		panic("no options")
+	}
+
+	return &Spinner{
+		UUID: uuid.New().String(),
+		Step: step,
+		cmd:  step.Probe.Command,
+		args: step.Probe.Args,
+	}
+}
+
+func (s *Spinner) expandEnvVars(ctx context.Context) {
+	expandedCommand := os.ExpandEnv(s.Step.Command)
+	s.cmd = expandedCommand
+
+	for idx, item := range s.args {
+		s.args[idx] = os.ExpandEnv(item)
+	}
+
+	if s.Step.Timeout != nil {
+		s.timeout = *s.Step.Timeout
+	} else {
+		s.timeout = viper.GetDuration("timeout")
+	}
+
+	if s.workdir != "" {
+		s.workdir = os.ExpandEnv(s.workdir)
+	}
 }
 
 // Run runs the process required
@@ -81,10 +104,6 @@ func (s *Spinner) Run(ctx context.Context) error {
 	cmd := exec.CommandContext(cmdCtx, s.cmd, s.args...)
 	cmd.Stderr = errChannel
 	cmd.Stdout = outChannel
-
-	if s.Step.Workdir != "" {
-		cmd.Dir = os.ExpandEnv(s.Step.Workdir)
-	}
 
 	err := cmd.Start()
 	if err != nil {
@@ -122,7 +141,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 }
 
 func (s *Spinner) push(ctx context.Context, event *Event) {
-	err := s.options.Notifier(ctx, event)
+	err := s.Step.options.Notifier(ctx, event)
 	if err != nil {
 		fmt.Println(err)
 	}

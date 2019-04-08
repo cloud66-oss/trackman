@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	// FldStep is a logger field
 	FldStep = "step"
 )
 
