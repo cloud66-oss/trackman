@@ -15,14 +15,14 @@ import (
 
 // Spinner is the main component that runs a process
 type Spinner struct {
+	UUID string
+	Name string
+
 	cmd     string
 	args    []string
 	timeout time.Duration
 	workdir string
 	step    Step
-
-	UUID     string
-	StepName string // StepName is used for logging
 }
 
 // NewSpinnerForStep creates a new instance of Spinner based on the Options
@@ -47,11 +47,12 @@ func newSpinnerForStep(ctx context.Context, step Step) *Spinner {
 	}
 
 	return &Spinner{
-		UUID:     uuid.New().String(),
-		StepName: step.Name,
-		cmd:      step.Command,
-		args:     step.Args,
-		step:     step,
+		UUID:    uuid.New().String(),
+		Name:    step.Name,
+		cmd:     step.Command,
+		args:    step.Args,
+		step:    step,
+		workdir: step.Workdir,
 	}
 }
 
@@ -61,11 +62,12 @@ func newSpinnerForProbe(ctx context.Context, step Step) *Spinner {
 	}
 
 	return &Spinner{
-		UUID:     uuid.New().String(),
-		StepName: step.Name,
-		cmd:      step.Probe.Command,
-		args:     step.Probe.Args,
-		step:     step,
+		UUID:    uuid.New().String(),
+		Name:    fmt.Sprintf("%s.probe", step.Name),
+		cmd:     step.Probe.Command,
+		args:    step.Probe.Args,
+		step:    step,
+		workdir: step.Workdir,
 	}
 }
 
@@ -106,6 +108,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 	cmd := exec.CommandContext(cmdCtx, s.cmd, s.args...)
 	cmd.Stderr = errChannel
 	cmd.Stdout = outChannel
+	cmd.Dir = s.workdir
 
 	err := cmd.Start()
 	if err != nil {
@@ -127,7 +130,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 			// The program has exited with an exit code != 0
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
 				s.push(ctx, NewEvent(s, EventRunFail, status))
-				return nil
+				return exitErr
 			}
 		} else {
 			// wait error

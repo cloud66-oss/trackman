@@ -28,9 +28,7 @@ func init() {
 	runCmd.Flags().StringVarP(&workflowFile, "file", "f", "", "workflow file to run")
 	runCmd.Flags().DurationP("timeout", "", 10*time.Second, "global timeout unless overwritten by a step")
 
-	if err := viper.BindPFlag("timeout", runCmd.Flags().Lookup("timeout")); err != nil {
-		panic("cannot bind timeout")
-	}
+	_ = viper.BindPFlag("timeout", runCmd.Flags().Lookup("timeout"))
 
 	rootCmd.AddCommand(runCmd)
 }

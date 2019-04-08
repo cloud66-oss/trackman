@@ -48,12 +48,34 @@ func (s *Step) Run(ctx context.Context) error {
 	err = spinner.Run(ctx)
 	if err != nil {
 		if !s.ContinueOnFail {
+			// main spinner failed and we need to get out
 			return err
 		}
 
-		logger.WithField(FldStep, s.Name).Error(err)
+		logger.WithField(FldStep, spinner.Name).Error(err)
+	}
+
+	// main spinner is done. we should use the probe to check if
+	// it was successful
+
+	if s.Probe != nil {
+		probeSpinner, err := NewSpinnerForProbe(ctx, *s)
+		if err != nil {
+			return err
+		}
+
+		probeSpinner.push(ctx, NewEvent(probeSpinner, EventRunningProbe, nil))
+
+		err = probeSpinner.Run(ctx)
+		if err != nil {
+			// probe failed
+			if !s.ContinueOnFail {
+				return err
+			}
+
+			logger.WithField(FldStep, probeSpinner.Name).Error(err)
+		}
 	}
 
 	return nil
-
 }

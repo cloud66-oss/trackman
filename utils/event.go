@@ -1,10 +1,6 @@
 package utils
 
-import (
-	"fmt"
-
-	"github.com/google/uuid"
-)
+import "github.com/google/uuid"
 
 const (
 	// EventRunRequested run requested
@@ -21,6 +17,8 @@ const (
 	EventRunSuccess = "run.success"
 	// EventRunTimeout run timed out
 	EventRunTimeout = "run.timeout"
+	// EventRunningProbe announces probing
+	EventRunningProbe = "run.probing"
 )
 
 // Event is a simple event
@@ -40,8 +38,4 @@ func NewEvent(spinner *Spinner, name string, extras interface{}) *Event {
 			Extras:    extras,
 		},
 	}
-}
-
-func (e *Event) String() string {
-	return fmt.Sprintf("Step: %s, Event: %s, Extras: %v", e.Payload.Step.Name, e.Name, e.Payload.Extras)
 }

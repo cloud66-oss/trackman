@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -37,11 +36,7 @@ func LoadWorkflowFromBytes(buff []byte, options *WorkflowOptions) (*Workflow, er
 		panic("no options")
 	}
 	if options.Notifier == nil {
-		options.Notifier = func(ctx context.Context, event *Event) error {
-			fmt.Println(event.String())
-
-			return nil
-		}
+		panic("no notifier")
 	}
 
 	workflow.options = options

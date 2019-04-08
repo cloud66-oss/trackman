@@ -34,6 +34,8 @@ func getLogger(ctx context.Context) *logrus.Logger {
 	return logger
 }
 
+// LoggerContext checks the context for a logger and creates a new one and puts it
+// on the context if not there
 func LoggerContext(ctx context.Context) (*logrus.Logger, context.Context) {
 	logger := getLogger(ctx)
 	ctx = context.WithValue(ctx, CtxLogger, logger)

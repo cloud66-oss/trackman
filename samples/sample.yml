@@ -12,6 +12,7 @@ steps:
     args: ["$USER"]
   - name: false
     command: false
+    continue_on_fail: true
   - name: fail
     command: fail
     metadata:
@@ -23,16 +24,22 @@ steps:
     timeout: 1s
     metadata:
       cloud66.com/uuid: 547c8a3c
+    continue_on_fail: true
   - name: trapper
     workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
     command: ruby
     args: ["trapper.rb"]
     timeout: 1s
+    continue_on_fail: true
   - name: piper
     workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
     command: ruby
     args: ["piper.rb"]
+  - name: dropcheck
+    timeout: 3s
+    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    command: ruby
+    args: ["filer.rb"]
     probe:
       command: ruby
-      workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
-      args: ["-e", "puts", "'a'"]
+      args: ["probe.rb"]
