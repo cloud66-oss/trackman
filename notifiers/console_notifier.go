@@ -2,28 +2,35 @@ package notifiers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/cloud66/trackman/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // ConsoleNotify writes notifications to console
 func ConsoleNotify(ctx context.Context, event *utils.Event) error {
+	var logger *logrus.Logger
+	if ctx.Value(utils.CtxLogger) != nil {
+		logger = ctx.Value(utils.CtxLogger).(*logrus.Logger)
+	} else {
+		logger = logrus.New()
+	}
+
 	switch event.Name {
 	case utils.EventRunRequested:
-		fmt.Printf("[%s] Starting\n", event.Payload.Step.Name)
+		logger.WithField("process", event.Payload.Step.Name).Info("Starting")
 	case utils.EventRunStarted:
-		fmt.Printf("[%s] Running\n", event.Payload.Step.Name)
+		logger.WithField("process", event.Payload.Step.Name).Info("Running")
 	case utils.EventRunSuccess:
-		fmt.Printf("[%s] Successfully finished\n", event.Payload.Step.Name)
+		logger.WithField("process", event.Payload.Step.Name).Info("Successfully finished")
 	case utils.EventRunError:
-		fmt.Printf("[%s] Failed to run\n", event.Payload.Step.Name)
+		logger.WithField("process", event.Payload.Step.Name).Error("Failed to run")
 	case utils.EventRunFail:
-		fmt.Printf("[%s] Finished with error %v\n", event.Payload.Step.Name, event.Payload.Extras)
+		logger.WithField("process", event.Payload.Step.Name).Errorf("Finished with error %v", event.Payload.Extras)
 	case utils.EventRunTimeout:
-		fmt.Printf("[%s] Timedout\n", event.Payload.Step.Name)
+		logger.WithField("process", event.Payload.Step.Name).Error("Timed out")
 	case utils.EventRunWaitError:
-		fmt.Printf("[%s] Error during wait\n", event.Payload.Step.Name)
+		logger.WithField("process", event.Payload.Step.Name).Error("Error during wait")
 	}
 
 	return nil

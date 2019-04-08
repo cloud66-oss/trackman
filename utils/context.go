@@ -4,5 +4,6 @@ package utils
 type CtxKey struct{ int }
 
 var (
-	ctxSpinner = CtxKey{1}
+	CtxSpinner = CtxKey{1}
+	CtxLogger  = CtxKey{2}
 )

@@ -3,11 +3,13 @@ metadata:
   cloud66.com/uuid: ff97e4c6
 steps:
   - name: list
-    command: ls -la
+    command: ls
+    args: ["-la"]
     metadata:
       cloud66.com/uuid: 8e2b4a31
   - name: env
-    command: echo $USER
+    command: echo
+    args: ["$USER"]
   - name: false
     command: false
     metadata:
@@ -16,7 +18,9 @@ steps:
     command: fail
     metadata:
       cloud66.com/uuid: 8e2b4a3e
+    stop_on_fail: false
   - name: sleep
-    command: sleep 10
+    command: sleep
+    args: ["10"]
     metadata:
       cloud66.com/uuid: 547c8a3c

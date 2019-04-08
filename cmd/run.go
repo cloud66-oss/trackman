@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/spf13/viper"
 
 	"github.com/cloud66/trackman/notifiers"
@@ -41,6 +43,9 @@ func init() {
 
 func runExec(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
+	logger := logrus.New()
+	//logger.SetFormatter(&utils.SpinFormatter{})
+	ctx = context.WithValue(ctx, utils.CtxLogger, logger)
 
 	options := &utils.WorkflowOptions{
 		Notifier: notifiers.ConsoleNotify,
@@ -58,7 +63,7 @@ func runExec(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Println("Done")
+	logger.Info("Done")
 }
 
 func loadWorkflow(cmd *cobra.Command, args []string, options *utils.WorkflowOptions) (*utils.Workflow, error) {

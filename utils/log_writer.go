@@ -25,7 +25,7 @@ func (l *LogWriter) Write(b []byte) (int, error) {
 	// we want each line to show on its own
 	for _, line := range strings.Split(string(b), "\n") {
 		if l.spinner != nil {
-			l.entry.WithField("process", l.spinner.step.Name).Log(l.level, line)
+			l.entry.WithField("process", l.spinner.Step.Name).Log(l.level, line)
 		} else {
 			l.entry.Log(l.level, line)
 		}
@@ -43,8 +43,8 @@ func NewLogWriter(ctx context.Context, level logrus.Level) *LogWriter {
 		level: level,
 	}
 
-	if ctx.Value(ctxSpinner) != nil {
-		lw.spinner = ctx.Value(ctxSpinner).(*Spinner)
+	if ctx.Value(CtxSpinner) != nil {
+		lw.spinner = ctx.Value(CtxSpinner).(*Spinner)
 	}
 
 	return lw

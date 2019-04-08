@@ -34,10 +34,10 @@ func NewEvent(spinner *Spinner, name string, extras interface{}) *Event {
 	return &Event{
 		Name: name,
 		Payload: Payload{
-			EventUUID:   uuid.New().String(),
-			SpinnerUUID: spinner.uuid,
-			Step:        spinner.step,
-			Extras:      extras,
+			EventUUID: uuid.New().String(),
+			Spinner:   spinner,
+			Step:      spinner.Step,
+			Extras:    extras,
 		},
 	}
 }
