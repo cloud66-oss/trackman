@@ -1,11 +1,13 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"syscall"
+	"text/template"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,6 +31,10 @@ type Spinner struct {
 func NewSpinnerForStep(ctx context.Context, step Step) (*Spinner, error) {
 	spinner := newSpinnerForStep(ctx, step)
 	spinner.expandEnvVars(ctx)
+	err := spinner.parseArgs(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return spinner, nil
 }
@@ -37,6 +43,10 @@ func NewSpinnerForStep(ctx context.Context, step Step) (*Spinner, error) {
 func NewSpinnerForProbe(ctx context.Context, step Step) (*Spinner, error) {
 	spinner := newSpinnerForProbe(ctx, step)
 	spinner.expandEnvVars(ctx)
+	err := spinner.parseArgs(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return spinner, nil
 }
@@ -88,6 +98,27 @@ func (s *Spinner) expandEnvVars(ctx context.Context) {
 	if s.workdir != "" {
 		s.workdir = os.ExpandEnv(s.workdir)
 	}
+}
+
+func (s *Spinner) parseArgs(ctx context.Context) error {
+
+	for idx, arg := range s.step.Args {
+		buf := &bytes.Buffer{}
+		tmpl, err := template.New("t1").Parse(arg)
+		if err != nil {
+			return err
+		}
+
+		err = tmpl.Execute(buf, s.step)
+		if err != nil {
+			return err
+		}
+
+		s.args[idx] = buf.String()
+	}
+
+	return nil
+
 }
 
 // Run runs the process required
