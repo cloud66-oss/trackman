@@ -40,12 +40,17 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 	if err != nil {
 		return nil, err
 	}
-
 	if options == nil {
 		panic("no options")
 	}
 	if options.Notifier == nil {
 		panic("no notifier")
+	}
+
+	workflow.logger, _ = LoggerContext(ctx)
+
+	if workflow.Version != "1" {
+		workflow.logger.Fatal("invalid workflow version")
 	}
 
 	workflow.gatekeeper = semaphore.NewWeighted(int64(options.Concurrency))
@@ -81,9 +86,9 @@ func LoadWorkflowFromReader(ctx context.Context, options *WorkflowOptions, reade
 
 // Run runs the entire workflow
 func (w *Workflow) Run(ctx context.Context) error {
-	joiner := sync.WaitGroup{}
-
 	w.logger, ctx = LoggerContext(ctx)
+
+	joiner := sync.WaitGroup{}
 
 	// TODO: override if specified
 	options := &StepOptions{

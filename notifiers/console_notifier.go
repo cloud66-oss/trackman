@@ -14,7 +14,7 @@ func ConsoleNotify(ctx context.Context, event *utils.Event) error {
 	case utils.EventRunRequested:
 		logger.WithField(utils.FldStep, event.Payload.Spinner.Name).Info("Starting")
 	case utils.EventRunStarted:
-		logger.WithField(utils.FldStep, event.Payload.Spinner.Name).Info("Running")
+		logger.WithField(utils.FldStep, event.Payload.Spinner.Name).Debug("Running")
 	case utils.EventRunSuccess:
 		logger.WithField(utils.FldStep, event.Payload.Spinner.Name).Info("Successfully finished")
 	case utils.EventRunError:
@@ -26,7 +26,7 @@ func ConsoleNotify(ctx context.Context, event *utils.Event) error {
 	case utils.EventRunWaitError:
 		logger.WithField(utils.FldStep, event.Payload.Spinner.Name).Error("Error during wait")
 	case utils.EventRunningProbe:
-		logger.WithField(utils.FldStep, event.Payload.Spinner.Name).Info("Running a probe")
+		logger.WithField(utils.FldStep, event.Payload.Spinner.Name).Debug("Running a probe")
 	}
 
 	return nil
