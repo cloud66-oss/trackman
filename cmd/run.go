@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/spf13/viper"
 
 	"github.com/cloud66/trackman/notifiers"
@@ -37,10 +39,19 @@ func init() {
 
 func runExec(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
+	level, err := logrus.ParseLevel(viper.GetString("log-level"))
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	ctx = context.WithValue(ctx, utils.CtxLogLevel, level)
 	logger, ctx := utils.LoggerContext(ctx)
 
 	options := &utils.WorkflowOptions{
-		Notifier: notifiers.ConsoleNotify,
+		Notifier:    notifiers.ConsoleNotify,
+		Concurrency: viper.GetInt("concurrency"),
+		Timeout:     viper.GetDuration("timeout"),
 	}
 
 	workflow, err := loadWorkflow(ctx, args, options, cmd)

@@ -6,8 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"sync"
-
-	"github.com/spf13/viper"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/semaphore"
@@ -16,7 +15,9 @@ import (
 
 // WorkflowOptions provides options for a workflow
 type WorkflowOptions struct {
-	Notifier func(ctx context.Context, event *Event) error
+	Notifier    func(ctx context.Context, event *Event) error
+	Concurrency int
+	Timeout     time.Duration
 }
 
 // Workflow is the internal object to hold a workflow file
@@ -47,7 +48,7 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 		panic("no notifier")
 	}
 
-	workflow.gatekeeper = semaphore.NewWeighted(int64(viper.GetInt("concurrency")))
+	workflow.gatekeeper = semaphore.NewWeighted(int64(options.Concurrency))
 	workflow.options = options
 	workflow.stopFlag = false
 	workflow.signal = &sync.Mutex{}

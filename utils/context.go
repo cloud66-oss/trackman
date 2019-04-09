@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 // CtxKey is a context key
@@ -15,18 +14,22 @@ var (
 	CtxSpinner = CtxKey{1}
 	// CtxLogger is the key to a logger on the context
 	CtxLogger = CtxKey{2}
+	// CtxLogLevel holds the desired log level on the context
+	CtxLogLevel = CtxKey{3}
 )
 
 // GetLogger returns a new or existing logger from the context
 func getLogger(ctx context.Context) *logrus.Logger {
 	var logger *logrus.Logger
+	var logLevel logrus.Level
+	if ctx.Value(CtxLogLevel) == nil {
+		logLevel = logrus.DebugLevel
+	} else {
+		logLevel = ctx.Value(CtxLogLevel).(logrus.Level)
+	}
 	if ctx.Value(CtxLogger) == nil {
 		logger = logrus.New()
-		level, err := logrus.ParseLevel(viper.GetString("log-level"))
-		if err != nil {
-			logger.Fatal("invalid log-level")
-		}
-		logger.SetLevel(level)
+		logger.SetLevel(logLevel)
 	} else {
 		logger = ctx.Value(CtxLogger).(*logrus.Logger)
 	}

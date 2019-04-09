@@ -12,7 +12,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 // Spinner is the main component that runs a process
@@ -89,10 +88,18 @@ func (s *Spinner) expandEnvVars(ctx context.Context) {
 		s.args[idx] = os.ExpandEnv(item)
 	}
 
+	if s.step.workflow == nil {
+		panic("no workflow")
+	}
+
+	if s.step.workflow.options == nil {
+		panic("no workflow option")
+	}
+
 	if s.step.Timeout != nil {
 		s.timeout = *s.step.Timeout
 	} else {
-		s.timeout = viper.GetDuration("timeout")
+		s.timeout = s.step.workflow.options.Timeout
 	}
 
 	if s.workdir != "" {
