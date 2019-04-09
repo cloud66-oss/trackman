@@ -1,6 +1,6 @@
 package utils
 
-// Probe defines a checker for a step's health
+// Probe defines a checker for a Step's health
 type Probe struct {
 	Command string   `yaml:"command"`
 	Args    []string `yaml:"args"`

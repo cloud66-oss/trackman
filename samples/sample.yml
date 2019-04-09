@@ -10,9 +10,14 @@ steps:
   - name: env
     command: echo
     args: ["$USER"]
+    depends_on:
+      - false
   - name: false
     command: false
     continue_on_fail: true
+    depends_on:
+      - list
+      - dropcheck
   - name: fail
     command: fail
     metadata:

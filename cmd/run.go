@@ -27,8 +27,10 @@ var (
 func init() {
 	runCmd.Flags().StringVarP(&workflowFile, "file", "f", "", "workflow file to run")
 	runCmd.Flags().DurationP("timeout", "", 10*time.Second, "global timeout unless overwritten by a step")
+	runCmd.Flags().IntP("concurrency", "", 5, "maximum number of concurrent steps to run")
 
 	_ = viper.BindPFlag("timeout", runCmd.Flags().Lookup("timeout"))
+	_ = viper.BindPFlag("concurrency", runCmd.Flags().Lookup("concurrency"))
 
 	rootCmd.AddCommand(runCmd)
 }
@@ -41,7 +43,7 @@ func runExec(cmd *cobra.Command, args []string) {
 		Notifier: notifiers.ConsoleNotify,
 	}
 
-	workflow, err := loadWorkflow(cmd, args, options)
+	workflow, err := loadWorkflow(ctx, args, options, cmd)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -49,14 +51,14 @@ func runExec(cmd *cobra.Command, args []string) {
 
 	err = workflow.Run(ctx)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error(err)
 		os.Exit(1)
 	}
 
 	logger.Info("Done")
 }
 
-func loadWorkflow(cmd *cobra.Command, args []string, options *utils.WorkflowOptions) (*utils.Workflow, error) {
+func loadWorkflow(ctx context.Context, args []string, options *utils.WorkflowOptions, cmd *cobra.Command) (*utils.Workflow, error) {
 	// are we sending in stream or file?
 	file, err := cmd.Flags().GetString("file")
 	if err != nil {
@@ -73,5 +75,5 @@ func loadWorkflow(cmd *cobra.Command, args []string, options *utils.WorkflowOpti
 		}
 	}
 
-	return utils.LoadWorkflowFromReader(reader, options)
+	return utils.LoadWorkflowFromReader(ctx, options, reader)
 }

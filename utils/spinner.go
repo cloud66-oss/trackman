@@ -154,7 +154,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 		if cmdCtx.Err() == context.DeadlineExceeded {
 			s.push(ctx, NewEvent(s, EventRunTimeout, nil))
 
-			return fmt.Errorf("step %s timed out after %s", s.step.Name, s.timeout)
+			return fmt.Errorf("Step %s timed out after %s", s.step.Name, s.timeout)
 		}
 
 		if exitErr, ok := err.(*exec.ExitError); ok {
