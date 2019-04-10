@@ -52,12 +52,14 @@ func initConfig() {
 }
 
 func checkForUpdates(cmd *cobra.Command, args []string) {
-	go func() {
-		UpdateDone.Add(1)
-		defer UpdateDone.Done()
+	if cmd.Name() != "update" && cmd.Name() != "version" {
+		go func() {
+			UpdateDone.Add(1)
+			defer UpdateDone.Done()
 
-		update(false)
-	}()
+			update(true)
+		}()
+	}
 }
 
 // Execute main cobra entry point

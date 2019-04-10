@@ -54,11 +54,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e380264aac392fc996064ddedc4e731dcf2f20a3207d7f7e071b280d76b914b4"
+  digest = "1:78ec06dc938b1229964a9a82dc02f348691cb6df98c45aab9a9fa76b619299de"
   name = "github.com/khash/updater"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c190df19552cfd5acd8efc65de03097ff4bc25dd"
+  revision = "e9fbe41786ca0960d2c1cd1a33e37f79e6650810"
 
 [[projects]]
   digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
@@ -177,11 +177,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cf353a5a9ffb2d6f850e9c773e25388a425a70c270546480427ed069e87b136a"
+  digest = "1:84b51049eed7e77dbd4009b3f5ead2ee5823bd18bfc02f9c6be9234248425b08"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "4b34438f7a67ee5f45cc6132e2bad873a20324e9"
+  revision = "cc4d4f50624c67f0af3a3fa307f4be9ab9030144"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
