@@ -1,0 +1,57 @@
+version: 1
+metadata:
+  cloud66.com/uuid: ff97e4c6
+steps:
+  - name: list
+    command: ls
+    args: ["-la"]
+    metadata:
+      cloud66.com/uuid: 8e2b4a31
+  - name: env
+    command: echo
+    args: ["$USER"]
+    depends_on:
+      - false
+  - name: false
+    command: false
+    continue_on_fail: true
+    depends_on:
+      - list
+      - dropcheck
+  - name: fail
+    command: fail
+    metadata:
+      cloud66.com/uuid: 8e2b4a3e
+    continue_on_fail: true
+  - name: sleep
+    command: sleep
+    args: ["30"]
+    timeout: 1s
+    metadata:
+      cloud66.com/uuid: 547c8a3c
+    continue_on_fail: true
+  - name: trapper
+    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    command: ruby
+    args: ["trapper.rb"]
+    timeout: 1s
+    continue_on_fail: true
+  - name: piper
+    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    command: ruby
+    args: ["piper.rb"]
+  - name: dropcheck
+    timeout: 3s
+    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    command: ruby
+    args: ["filer.rb"]
+    probe:
+      command: ruby
+      args: ["probe.rb"]
+    continue_on_fail: true
+  - name: arger
+    metadata:
+      cloud66.com/uuid: arger-123
+    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    command: ruby
+    args: ["arger.rb", "hello", "{{ index .Metadata \"cloud66.com/uuid\" }}"]
