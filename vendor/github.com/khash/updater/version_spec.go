@@ -6,6 +6,7 @@ import "fmt"
 type VersionSpec struct {
 	Version string `json:"version"`
 	Channel string `json:"channel"`
+	Force   bool   `json:"force"`
 }
 
 // VersionSpecs is a collection of VersionSpecs

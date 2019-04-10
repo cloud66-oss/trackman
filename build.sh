@@ -9,12 +9,19 @@ if [ -z "$1" ]
 fi
 
 channel=$1
+force="false"
+
+if [[ $2 == "--force" ]]
+  then
+    force="true"
+fi
 
 echo "Building $channel/$version"
 echo
 
 rm build/*
-curl -s http://downloads.cloud66.com.s3.amazonaws.com/trackman/versions.json | jq '.versions |= map(if (.channel == "'$channel'") then .version = "'$version'" else . end)' > build/versions.json
+
+curl -s http://downloads.cloud66.com.s3.amazonaws.com/trackman/versions.json | jq '.versions |= map(if (.channel == "'$channel'") then .version = "'$version'" else . end) | .versions |= map(if (.channel == "'$channel'") then .force = '$force' else . end)' > build/versions.json
 echo "Current Versions"
 cat build/versions.json | jq -r '.versions | map([.channel, .version] | join(": ")) | .[]'
 echo

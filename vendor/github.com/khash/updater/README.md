@@ -1,8 +1,8 @@
 # Updater
- A simple to use Go package for self updating binaries. It supports HTTP download, Semantic versioning and channels.
- 
+ A simple to use Go package for self updating binaries. It supports HTTP download, Semantic versioning, channels and remote forced updates.
+
  ## Install
- 
+
 ```bash
 $ go get github.com/khash/updater
 ```
@@ -14,9 +14,9 @@ To use updater, you need to push your binaries somewhere they can be downloaded 
 ```json
 {
   "versions": [
-    { 
+    {
       "version":  "1.0.0-pre",
-      "channel": "dev" 
+      "channel": "dev"
     },
     {
       "version": "1.0.0",
@@ -24,7 +24,8 @@ To use updater, you need to push your binaries somewhere they can be downloaded 
     },
     {
       "version": "1.0.0-pre-1-57dh54",
-      "channel": "nightly"
+      "channel": "nightly",
+      "force": true
     }
   ]
 }
@@ -77,11 +78,11 @@ The full URL of where the binaries and `versions.json` file can be found. An exa
 
 **VersionSpecsFilename**
 
-This is the name of the JSON file. If not set, `versions.json`  will be used which will mean the full URL for the JSON file will be `https://downloads.acme.org/versions.json` 
+This is the name of the JSON file. If not set, `versions.json`  will be used which will mean the full URL for the JSON file will be `https://downloads.acme.org/versions.json`
 
 **BinPattern**
 
-This is the pattern used to find the relevant binary file to download. If not specified the default is `{{OS}}_{{ARCH}}_{{VERSION}}`. This means the updater will look for version `1.10.20` of the binary compiled for the OSX 64bit architecture at `https://downloads.acme.org/darwin_amd64_1.10.20` 
+This is the pattern used to find the relevant binary file to download. If not specified the default is `{{OS}}_{{ARCH}}_{{VERSION}}`. This means the updater will look for version `1.10.20` of the binary compiled for the OSX 64bit architecture at `https://downloads.acme.org/darwin_amd64_1.10.20`
 
 **Channel**
 
@@ -94,6 +95,8 @@ If set to `false` the updater will print out progress of the update to the conso
 ### Updater
 
 The Updater itself, can be created using `NewUpdater` and run using the `Run` function. You can force updates by passing the `force` parameter into `Run`. If forced, the binary will be updated even if it's newer than the remote version.
+
+You can also remote force an update. This is useful when you need to rollback to an older version across all clients. To force an update remotely, set the `force` attribute to `true` in `versions.json` as per example above.
 
 ## Compiling
 
@@ -144,5 +147,3 @@ aws s3 cp build s3://acme/myapp --acl public-read --recursive
 ```
 
 This script requires a configured AWS cli installed.
-
-

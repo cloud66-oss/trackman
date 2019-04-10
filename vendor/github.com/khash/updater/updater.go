@@ -59,11 +59,17 @@ func (u *Updater) Run(force bool) error {
 		return err
 	}
 
-	if !u.options.Silent {
-		fmt.Printf("Local Version %v - Remote Version: %v\n", u.currentVersion, remoteVersion)
+	rVersion, err := version.NewVersion(remoteVersion.Version)
+	if err != nil {
+		return fmt.Errorf("remote version is '%s'. %s", remoteVersion.Version, err)
 	}
-	if force || u.currentVersion.LessThan(remoteVersion) {
-		err = u.downloadAndReplace(remoteVersion)
+
+	if !u.options.Silent {
+		fmt.Printf("Local Version %v - Remote Version: %v\n", u.currentVersion, rVersion)
+	}
+
+	if force || remoteVersion.Force || u.currentVersion.LessThan(rVersion) {
+		err = u.downloadAndReplace(rVersion)
 		if err != nil {
 			return err
 		}
@@ -146,7 +152,7 @@ func (u *Updater) downloadAndReplace(remoteVersion *version.Version) error {
 	return nil
 }
 
-func (u *Updater) getRemoteVersion() (*version.Version, error) {
+func (u *Updater) getRemoteVersion() (*VersionSpec, error) {
 	err := fileExists(u.options.VersionSpecsURL())
 	if err != nil {
 		return nil, err
@@ -174,17 +180,7 @@ func (u *Updater) getRemoteVersion() (*version.Version, error) {
 		return nil, err
 	}
 
-	v, err := versions.GetVersionByChannel(u.options.Channel)
-	if err != nil {
-		return nil, err
-	}
-
-	remoteVersion, err := version.NewVersion(v.Version)
-	if err != nil {
-		return nil, fmt.Errorf("remote version is '%s'. %s", string(b), err)
-	}
-
-	return remoteVersion, nil
+	return versions.GetVersionByChannel(u.options.Channel)
 }
 
 func generateURL(path string, version string) string {
