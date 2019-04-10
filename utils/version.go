@@ -2,7 +2,7 @@ package utils
 
 var (
 	// Version is trackman version
-	Version = "unknown"
+	Version = "0.0.1"
 	// Revision is trackman gitref
-	Revision = "unknown"
+	Revision = "HEAD"
 )

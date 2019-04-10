@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -11,15 +12,19 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "trackman",
-	Short: "Trackman is a tool to run commands in a sequence",
+	Use:              "trackman",
+	Short:            "Trackman is a tool to run commands in a sequence",
+	PersistentPreRun: checkForUpdates,
 }
 
 var (
 	cfgFile string
+	// UpdateDone makes sure background updater is done before the app is closed
+	UpdateDone *sync.WaitGroup
 )
 
 func init() {
+	UpdateDone = &sync.WaitGroup{}
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
 	rootCmd.PersistentFlags().String("log-level", "info", "log level. Use debug to see process output")
@@ -43,9 +48,16 @@ func initConfig() {
 		viper.SetConfigName("config")
 	}
 
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Can't read config:", err)
-	}
+	_ = viper.ReadInConfig()
+}
+
+func checkForUpdates(cmd *cobra.Command, args []string) {
+	go func() {
+		UpdateDone.Add(1)
+		defer UpdateDone.Done()
+
+		update(false)
+	}()
 }
 
 // Execute main cobra entry point
