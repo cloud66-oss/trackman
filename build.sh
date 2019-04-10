@@ -1,8 +1,17 @@
 #!/bin/bash
 
 version=$(git describe --tags --always)
-revision="dev"
 
-echo "Building $version:$revision"
-echo $version > publish/VERSION
-gox -ldflags "-X github.com/cloud66/trackman/utils.Revision=$revision -X github.com/cloud66/zonedns/utils.Version=$version" -os="darwin linux windows" -arch="amd64" -output "publish/{{.OS}}_{{.Arch}}_$version"
+if [ -z "$1" ]
+  then
+    echo "No channel supplied"
+    exit 1
+fi
+
+channel=$1
+
+echo "Building $channel/$version"
+
+rm build/*
+curl -s http://downloads.cloud66.com.s3.amazonaws.com/trackman/versions.json | jq '.versions |= map(if (.channel == "'$channel'") then .version = "'$version'" else . end)' > build/versions.json
+gox -ldflags "-X github.com/cloud66/trackman/utils.Version=$version -X github.com/cloud66/trackman/utils.Channel=$channel" -os="darwin linux windows" -arch="amd64" -output "build/{{.OS}}_{{.Arch}}_$version"

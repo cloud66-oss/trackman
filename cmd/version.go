@@ -14,7 +14,7 @@ var versionCmd = &cobra.Command{
 		fmt.Println("Trackman")
 		fmt.Println("(c) 2019 Cloud66 Inc.")
 		fmt.Println("Trackman is a commandline and library to run multiple commands as a workflow")
-		fmt.Printf("%s:%s\n", utils.Version, utils.Revision)
+		fmt.Printf("%s/%s\n", utils.Channel, utils.Version)
 	},
 }
 
