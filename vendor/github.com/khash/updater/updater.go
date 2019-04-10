@@ -2,6 +2,7 @@ package updater
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -52,7 +53,7 @@ func NewUpdater(currentVersion string, options *Options) (*Updater, error) {
 }
 
 // Run runs the updater
-func (u *Updater) Run() error {
+func (u *Updater) Run(force bool) error {
 	remoteVersion, err := u.getRemoteVersion()
 	if err != nil {
 		return err
@@ -61,7 +62,7 @@ func (u *Updater) Run() error {
 	if !u.options.Silent {
 		fmt.Printf("Local Version %v - Remote Version: %v\n", u.currentVersion, remoteVersion)
 	}
-	if u.currentVersion.LessThan(remoteVersion) {
+	if force || u.currentVersion.LessThan(remoteVersion) {
 		err = u.downloadAndReplace(remoteVersion)
 		if err != nil {
 			return err
@@ -73,7 +74,13 @@ func (u *Updater) Run() error {
 
 func (u *Updater) downloadAndReplace(remoteVersion *version.Version) error {
 	// fetch the new file
-	bodyResp, err := http.Get(generateURL(u.options.BinURL(), remoteVersion.String()))
+	binURL := generateURL(u.options.BinURL(), remoteVersion.String())
+	err := fileExists(binURL)
+	if err != nil {
+		return err
+	}
+
+	bodyResp, err := http.Get(binURL)
 	if err != nil {
 		return err
 	}
@@ -140,11 +147,20 @@ func (u *Updater) downloadAndReplace(remoteVersion *version.Version) error {
 }
 
 func (u *Updater) getRemoteVersion() (*version.Version, error) {
+	err := fileExists(u.options.VersionSpecsURL())
+	if err != nil {
+		return nil, err
+	}
+
 	response, err := http.Get(u.options.VersionSpecsURL())
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New("invalid version specification file")
+	}
 
 	b, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -177,4 +193,18 @@ func generateURL(path string, version string) string {
 	path = strings.Replace(path, "{{VERSION}}", version, -1)
 
 	return path
+}
+
+func fileExists(path string) error {
+	resp, err := http.Head(path)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("remote file not found at %s", path)
+	}
+
+	return nil
+
 }
