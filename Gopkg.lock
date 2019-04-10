@@ -54,11 +54,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ac69af9db380b755310cb0c87d5c3281950aa368bbdb984426bf28ad0eee5c5e"
+  digest = "1:8a7116b2cca5b4e23d7dca37e6b1cab77496e8e74958ab7eabb38ece3f090f41"
   name = "github.com/khash/updater"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ecf21602b477491c71baafebdeaf897031c7d388"
+  revision = "abc4cfb3512bd9739f9846eccf1026556feabb0b"
 
 [[projects]]
   digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"

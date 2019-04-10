@@ -117,17 +117,20 @@ fi
 channel=$1
 
 echo "Building $channel/$version"
+echo
 
 rm build/*
-
 curl -s http://s3.amazonaws.com/acme/versions.json | jq '.versions |= map(if (.channel == "'$channel'") then .version = "'$version'" else . end)' > build/versions.json
+echo "Current Versions"
+cat build/versions.json | jq -r '.versions | map([.channel, .version] | join(": ")) | .[]'
+echo
 
 gox -ldflags "-X github.com/acme/myapp/utils.Version=$version -X github.com/acme/myapp/utils.Channel=$channel" -os="darwin linux windows" -arch="amd64" -output "build/{{.OS}}_{{.Arch}}_$version"
 ```
 
 The above example assumes 2 variables in `utils` package to hold the current version and the current channel for your application and sets them to the current git tag and the user input into the bash script. This means for the updater to work, you'd need to tag your code with a valid SemVer tag.
 
-It also requires `gox` tool to allow cross compiling of the code.
+It also requires [gox](https://github.com/mitchellh/gox) tool to allow cross compiling of the code.
 
 ### Publish
 
