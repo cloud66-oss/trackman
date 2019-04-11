@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -29,7 +30,7 @@ var (
 func init() {
 	runCmd.Flags().StringVarP(&workflowFile, "file", "f", "", "workflow file to run")
 	runCmd.Flags().DurationP("timeout", "", 10*time.Second, "global timeout unless overwritten by a step")
-	runCmd.Flags().IntP("concurrency", "", 5, "maximum number of concurrent steps to run")
+	runCmd.Flags().IntP("concurrency", "", runtime.NumCPU()-1, "maximum number of concurrent steps to run")
 
 	_ = viper.BindPFlag("timeout", runCmd.Flags().Lookup("timeout"))
 	_ = viper.BindPFlag("concurrency", runCmd.Flags().Lookup("concurrency"))
@@ -60,13 +61,19 @@ func runExec(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	err = workflow.Run(ctx)
+	err, stepErrors := workflow.Run(ctx)
 	if err != nil {
 		logger.Error(err)
 		os.Exit(1)
 	}
 
-	logger.Info("Done")
+	if stepErrors != nil {
+		// this is already logged, just get out
+		logger.Error("Done with errors")
+		os.Exit(1)
+	} else {
+		logger.Info("Done")
+	}
 }
 
 func loadWorkflow(ctx context.Context, args []string, options *utils.WorkflowOptions, cmd *cobra.Command) (*utils.Workflow, error) {

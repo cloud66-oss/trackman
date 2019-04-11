@@ -3,15 +3,13 @@ metadata:
   cloud66.com/uuid: ff97e4c6
 steps:
   - name: list
-    command: ls
-    args: ["-la"]
+    command: ls -la
     metadata:
       cloud66.com/uuid: 8e2b4a31
   - name: env
-    command: echo
-    args: ["$USER"]
+    command: echo $USER
     depends_on:
-      - false
+      - sleep
   - name: false
     command: false
     continue_on_fail: true
@@ -24,34 +22,28 @@ steps:
       cloud66.com/uuid: 8e2b4a3e
     continue_on_fail: true
   - name: sleep
-    command: sleep
-    args: ["30"]
+    command: sleep 30
     timeout: 1s
     metadata:
       cloud66.com/uuid: 547c8a3c
     continue_on_fail: true
   - name: trapper
     workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
-    command: ruby
-    args: ["trapper.rb"]
+    command: ruby trapper.rb
     timeout: 1s
     continue_on_fail: true
   - name: piper
     workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
-    command: ruby
-    args: ["piper.rb"]
+    command: ruby piper.rb
   - name: dropcheck
     timeout: 3s
     workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
-    command: ruby
-    args: ["filer.rb"]
+    command: ruby filer.rb
     probe:
-      command: ruby
-      args: ["probe.rb"]
+      command: ruby probe.rb
     continue_on_fail: true
   - name: arger
     metadata:
       cloud66.com/uuid: arger-123
     workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
-    command: ruby
-    args: ["arger.rb", "hello", "{{ index .Metadata \"cloud66.com/uuid\" }}"]
+    command: "ruby arger.rb hello {{ index .Metadata \"cloud66.com/uuid\" }}"

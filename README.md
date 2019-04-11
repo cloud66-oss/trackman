@@ -14,11 +14,9 @@ Using Trackman is simple. It uses a YAML file to describe the steps to run and r
 version: 1
 steps:
   - name: list
-    command: ls
-    args: ["-la"]
+    command: ls -la
   - name: env
-    command: echo
-    args: ["$USER"]
+    command: echo $USER
 ```
 
 Save this file as `workflow.yml` and run it:
@@ -43,11 +41,9 @@ Steps can be made dependent to each other:
 version: 1
 steps:
   - name: list
-    command: ls
-    args: ["-la"]
+    command: ls -la
   - name: env
-    command: echo
-    args: ["$USER"]
+    command: echo $USER
     depends_on:
       - list
 ```
@@ -66,11 +62,9 @@ Sometimes however, there are tasks that run asynchronously and return with 0 imm
 version: 1
 steps:
   - name: deploy
-    command: kubectl
-    args: ["apply", "-f", "manifest.yml"]
+    command: kubectl apply -f manifest.yml
     probe:
-      command: kubectl
-      args: ["wait", "--for=condition=complete", "job/myjob"]
+      command: kubectl wait --for=condition=complete job/myjob
 ```
 
 This workflow will run `kubectl apply -f manifest.yml` first. If it returns with exist status 0 (it ran successfully), will then run `kubectl wait --for=condition=complete job/myjob` until it returns with exist status 0 and considers the step successful.
@@ -87,8 +81,7 @@ You can change the timeout per step using the `timeout` attribute:
 version: 1
 steps:
   - name: dopy
-    command: sleep
-    args: ["60"]
+    command: sleep 60
     timeout: 30s
 ```
 
@@ -106,8 +99,7 @@ steps:
   - name: list
     metadata:
       fuzz: buzz
-    command: ls
-    args: ["la"]
+    command: ls la
 ```
 
 You can use the metadata as arguments of a step:
@@ -116,8 +108,7 @@ You can use the metadata as arguments of a step:
   - name: dump
     metadata:
       foo: bar
-    command: echo
-    args: ["{{ index .Metadata \"foo\" }}"]
+    command: "echo {{ index .Metadata \"foo\" }}"
 ```
 
 Trackman can use Golang template language.

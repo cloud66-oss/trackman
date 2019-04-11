@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/semaphore"
 	"gopkg.in/yaml.v2"
@@ -85,7 +87,7 @@ func LoadWorkflowFromReader(ctx context.Context, options *WorkflowOptions, reade
 }
 
 // Run runs the entire workflow
-func (w *Workflow) Run(ctx context.Context) error {
+func (w *Workflow) Run(ctx context.Context) (runErrors error, stepErrors error) {
 	w.logger, ctx = LoggerContext(ctx)
 
 	joiner := sync.WaitGroup{}
@@ -98,7 +100,7 @@ func (w *Workflow) Run(ctx context.Context) error {
 	// Run all that can run
 	for {
 		if w.shouldStop(ctx) {
-			return nil
+			return nil, stepErrors
 		}
 		if w.allDone() {
 			break
@@ -109,31 +111,46 @@ func (w *Workflow) Run(ctx context.Context) error {
 			continue
 		}
 
+		w.logger.WithField(FldStep, step.Name).Trace("Next to run")
+
 		err := w.gatekeeper.Acquire(ctx, 1)
 		if err != nil {
-			return err
+			return err, nil
 		}
 
+		if w.shouldStop(ctx) {
+			return
+		}
+
+		joiner.Add(1)
 		go func(toRun *Step) {
-			joiner.Add(1)
-			defer joiner.Done()
+			if w.shouldStop(ctx) {
+				return
+			}
+
+			defer func() {
+				w.logger.WithField(FldStep, toRun.Name).Trace("Done running")
+				w.gatekeeper.Release(1)
+				joiner.Done()
+			}()
+
+			w.logger.WithField(FldStep, toRun.Name).Trace("Preparing to run")
 
 			toRun.options = options
 			err := toRun.Run(ctx)
 			if err != nil {
-				// run railed in a way that the whole workflow should stop
-				w.logger.Error(err)
+				stepErrors = multierror.Append(err, stepErrors)
+				// run failed in some way that the whole workflow should stop
+				w.logger.WithField(FldStep, toRun.Name).Error(err)
+				w.logger.WithField(FldStep, toRun.Name).Error("Calling a stop to run")
 				w.stop(ctx)
 			}
-
-			w.gatekeeper.Release(1)
-
 		}(step)
 	}
 
 	joiner.Wait()
 
-	return nil
+	return nil, stepErrors
 }
 
 // nextToRun returns the next step that can run

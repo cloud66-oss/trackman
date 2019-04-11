@@ -1,14 +1,13 @@
 package utils
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"syscall"
-	"text/template"
 	"time"
+
+	"github.com/kballard/go-shellquote"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -28,66 +27,69 @@ type Spinner struct {
 
 // NewSpinnerForStep creates a new instance of Spinner based on the Options
 func NewSpinnerForStep(ctx context.Context, step Step) (*Spinner, error) {
-	spinner := newSpinnerForStep(ctx, step)
-	spinner.expandEnvVars(ctx)
-	err := spinner.parseArgs(ctx)
+	spinner, err := newSpinnerForStep(ctx, step)
 	if err != nil {
 		return nil, err
 	}
+
+	spinner.validate(ctx)
 
 	return spinner, nil
 }
 
 // NewSpinnerForProbe creates a new instance of Spinner based on the Options
 func NewSpinnerForProbe(ctx context.Context, step Step) (*Spinner, error) {
-	spinner := newSpinnerForProbe(ctx, step)
-	spinner.expandEnvVars(ctx)
-	err := spinner.parseArgs(ctx)
+	spinner, err := newSpinnerForProbe(ctx, step)
 	if err != nil {
 		return nil, err
 	}
 
+	spinner.validate(ctx)
+
 	return spinner, nil
 }
 
-func newSpinnerForStep(ctx context.Context, step Step) *Spinner {
+func newSpinnerForStep(ctx context.Context, step Step) (*Spinner, error) {
 	if step.options == nil {
 		panic("no options")
+	}
+
+	parts, err := shellquote.Split(step.Command)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Spinner{
 		UUID:    uuid.New().String(),
 		Name:    step.Name,
-		cmd:     step.Command,
-		args:    step.Args,
+		cmd:     parts[0],
+		args:    parts[1:],
 		step:    step,
 		workdir: step.Workdir,
-	}
+	}, nil
 }
 
-func newSpinnerForProbe(ctx context.Context, step Step) *Spinner {
+func newSpinnerForProbe(ctx context.Context, step Step) (*Spinner, error) {
 	if step.options == nil {
 		panic("no options")
+	}
+
+	parts, err := shellquote.Split(step.Probe.Command)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Spinner{
 		UUID:    uuid.New().String(),
 		Name:    fmt.Sprintf("%s.probe", step.Name),
-		cmd:     step.Probe.Command,
-		args:    step.Probe.Args,
+		cmd:     parts[0],
+		args:    parts[1:],
 		step:    step,
 		workdir: step.Workdir,
-	}
+	}, nil
 }
 
-func (s *Spinner) expandEnvVars(ctx context.Context) {
-	expandedCommand := os.ExpandEnv(s.step.Command)
-	s.cmd = expandedCommand
-
-	for idx, item := range s.args {
-		s.args[idx] = os.ExpandEnv(item)
-	}
-
+func (s *Spinner) validate(ctx context.Context) {
 	if s.step.workflow == nil {
 		panic("no workflow")
 	}
@@ -101,31 +103,6 @@ func (s *Spinner) expandEnvVars(ctx context.Context) {
 	} else {
 		s.timeout = s.step.workflow.options.Timeout
 	}
-
-	if s.workdir != "" {
-		s.workdir = os.ExpandEnv(s.workdir)
-	}
-}
-
-func (s *Spinner) parseArgs(ctx context.Context) error {
-
-	for idx, arg := range s.step.Args {
-		buf := &bytes.Buffer{}
-		tmpl, err := template.New("t1").Parse(arg)
-		if err != nil {
-			return err
-		}
-
-		err = tmpl.Execute(buf, s.step)
-		if err != nil {
-			return err
-		}
-
-		s.args[idx] = buf.String()
-	}
-
-	return nil
-
 }
 
 // Run runs the process required
@@ -135,7 +112,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 	cmdCtx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
-	_, ctx = LoggerContext(ctx)
+	logger, ctx := LoggerContext(ctx)
 
 	// add this spinner to the context for the log writers
 	ctx = context.WithValue(ctx, CtxSpinner, s)
@@ -143,6 +120,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 	outChannel := NewLogWriter(ctx, logrus.DebugLevel)
 	errChannel := NewLogWriter(ctx, logrus.ErrorLevel)
 
+	logger.WithField(FldStep, s.step.Name).Tracef("Running %s with %s", s.cmd, s.args)
 	cmd := exec.CommandContext(cmdCtx, s.cmd, s.args...)
 	cmd.Stderr = errChannel
 	cmd.Stdout = outChannel
@@ -161,7 +139,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 		if cmdCtx.Err() == context.DeadlineExceeded {
 			s.push(ctx, NewEvent(s, EventRunTimeout, nil))
 
-			return fmt.Errorf("Step %s timed out after %s", s.step.Name, s.timeout)
+			return fmt.Errorf("step %s timed out after %s", s.step.Name, s.timeout)
 		}
 
 		if exitErr, ok := err.(*exec.ExitError); ok {

@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"html/template"
+	"os"
 	"strings"
 	"time"
 )
@@ -23,12 +26,12 @@ type Step struct {
 	Metadata       map[string]string `yaml:"metadata"`
 	Name           string            `yaml:"name"`
 	Command        string            `yaml:"command"`
-	Args           []string          `yaml:"args"`
 	ContinueOnFail bool              `yaml:"continue_on_fail"`
 	Timeout        *time.Duration    `yaml:"timeout"`
 	Workdir        string            `yaml:"workdir"`
 	Probe          *Probe            `yaml:"probe"`
 	DependsOn      []string          `yaml:"depends_on"`
+	Preflight      string            `yaml:"preflight"`
 
 	options   *StepOptions
 	workflow  *Workflow
@@ -68,6 +71,32 @@ func (s *Step) shouldRun() bool {
 	return true
 }
 
+func (s *Step) parseCommand(ctx context.Context) error {
+	buf := &bytes.Buffer{}
+	tmpl, err := template.New("t1").Parse(s.Command)
+	if err != nil {
+		return err
+	}
+
+	err = tmpl.Execute(buf, s)
+	if err != nil {
+		return err
+	}
+
+	s.Command = buf.String()
+
+	return nil
+}
+
+func (s *Step) expandEnvVars(ctx context.Context) {
+	expandedCommand := os.ExpandEnv(s.Command)
+	s.Command = expandedCommand
+
+	if s.Workdir != "" {
+		s.Workdir = os.ExpandEnv(s.Workdir)
+	}
+}
+
 func (s *Step) isDone() bool {
 	return s.status == stepDone
 }
@@ -94,6 +123,14 @@ func (s *Step) Run(ctx context.Context) error {
 	defer func() { s.status = stepDone }()
 
 	logger, ctx := LoggerContext(ctx)
+
+	err := s.parseCommand(ctx)
+	if err != nil {
+		// a failure here is down to workflow errors so
+		// continue on failure doesn't apply
+		return err
+	}
+	s.expandEnvVars(ctx)
 
 	spinner, err := NewSpinnerForStep(ctx, *s)
 	if err != nil {

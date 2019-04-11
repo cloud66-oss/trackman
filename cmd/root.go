@@ -28,8 +28,10 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
 	rootCmd.PersistentFlags().String("log-level", "info", "log level. Use debug to see process output")
+	rootCmd.PersistentFlags().Bool("no-update", false, "turn off auto update")
 
 	_ = viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
+	_ = viper.BindPFlag("no-update", rootCmd.PersistentFlags().Lookup("no-update"))
 }
 
 func initConfig() {
@@ -52,7 +54,7 @@ func initConfig() {
 }
 
 func checkForUpdates(cmd *cobra.Command, args []string) {
-	if cmd.Name() != "update" && cmd.Name() != "version" {
+	if cmd.Name() != "update" && cmd.Name() != "version" && !viper.GetBool("no-update") {
 		go func() {
 			UpdateDone.Add(1)
 			defer UpdateDone.Done()
