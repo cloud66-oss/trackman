@@ -61,6 +61,7 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 	workflow.signal = &sync.Mutex{}
 
 	// validate depends on and link them to the step
+	// TODO: check for circular dependencies
 	for idx, step := range workflow.Steps {
 		workflow.Steps[idx].workflow = workflow
 		for _, priorStepName := range step.DependsOn {
@@ -86,16 +87,45 @@ func LoadWorkflowFromReader(ctx context.Context, options *WorkflowOptions, reade
 	return LoadWorkflowFromBytes(ctx, options, buff)
 }
 
+func (w *Workflow) preflights(ctx context.Context) (preflights []*Preflight) {
+	for kdx, step := range w.Steps {
+		for idx := range step.Preflights {
+			step.Preflights[idx].step = w.Steps[kdx]
+			preflights = append(preflights, &step.Preflights[idx])
+		}
+	}
+
+	return preflights
+}
+
+func (w *Workflow) preflightChecks(ctx context.Context) error {
+	logger, _ := LoggerContext(ctx)
+	for _, preflight := range w.preflights(ctx) {
+		err := preflight.Run(ctx)
+		if err != nil {
+			if preflight.Message != "" {
+				// dump the message
+				logger.WithField(FldStep, fmt.Sprintf("%s.preflight", preflight.step.Name)).Error(preflight.Message)
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Run runs the entire workflow
 func (w *Workflow) Run(ctx context.Context) (runErrors error, stepErrors error) {
 	w.logger, ctx = LoggerContext(ctx)
 
-	joiner := sync.WaitGroup{}
-
-	// TODO: override if specified
-	options := &StepOptions{
-		Notifier: w.options.Notifier,
+	w.logger.Info("Running Preflight checks")
+	err := w.preflightChecks(ctx)
+	if err != nil {
+		return err, nil
 	}
+	w.logger.Info("Preflight checks complete")
+
+	joiner := sync.WaitGroup{}
 
 	// Run all that can run
 	for {
@@ -136,7 +166,6 @@ func (w *Workflow) Run(ctx context.Context) (runErrors error, stepErrors error) 
 
 			w.logger.WithField(FldStep, toRun.Name).Trace("Preparing to run")
 
-			toRun.options = options
 			err := toRun.Run(ctx)
 			if err != nil {
 				stepErrors = multierror.Append(err, stepErrors)

@@ -123,6 +123,56 @@ All environment variables in commands and their arguments are replaced with `$` 
 
 All environment variables available to Trackman when it starts will be passed on to the step commands.
 
+### Preflight Checks
+
+You can run some checks before the workflow starts. These could be checking for certain binaries or packages to be installed on the machine before the workflow starts.
+Each step can have one or more preflight checks. The workflow will run all preflight checks before starting to run the steps. If any of the preflight checks fail, the workflow will not start.
+
+Success of a preflight check is based on the exit status. You can also assign an optional friendly message to each preflight check to be displayed in the event of a failure.
+
+```yaml
+steps:
+  - name: list
+    command: ls -la
+    preflights:
+      - command: true
+        message: "Oh nose!"
+```
+
+## Trackman CLI
+
+### Run
+
+Runs the given workflow. Use `--help` for more details.
+
+```bash
+$ trackman run -f file.yml
+```
+
+### Update
+
+Manually checks for updates. It can also switch the current release channel.
+
+```bash
+$ trackman update [--channel name]
+```
+
+### Version
+
+Shows the channel and the version
+
+```bash
+$ trackman version
+```
+
+### Help
+
+Shows help.
+
+```bash
+$ trackman help
+```
+
 ## Update
 
 Trackman updates automatically to the latest available version after each run (except for the `version` command). By default it runs the **stable** channel but you can switch the channel:
@@ -131,14 +181,14 @@ Trackman updates automatically to the latest available version after each run (e
 $ trackman update --channel dev
 ```
 
-This will switch trackman to the **dev** (development) channel and will update it to the latest version of that channel after each run. You can check for updates manually using the `update` command as well.
+This will switch trackman to the **dev** (development) channel and will update it to the latest version of that channel after each run. You can check for updates manually using the `update` command as well. **dev** channel doesn't get automatically updated.
 
 ## Release
 
 If you want to release a new version of Trackman, follow these steps:
 
 1. Start a new Release in git flow. Make sure the release name is a valid SemVer text like `1.0.0-rc1` or `2.0.4`.
-2. Run `./build.sh CHANNEL`, replacing `CHANNEL` with `dev` or `stable`.
+2. Run `./build.sh CHANNEL`, replacing `CHANNEL` with `dev` or `stable` or `edge`
 3. Run `./publish.sh`. This will upload the compiled binaries (previous step) to s3.
 
 The last step assumes you have a configured **AWS CLI** installed on your machine with the right permissions to push to `downloads.cloud66.com` bucket.

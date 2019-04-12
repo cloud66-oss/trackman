@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/cloud66/trackman/utils"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -54,7 +55,7 @@ func initConfig() {
 }
 
 func checkForUpdates(cmd *cobra.Command, args []string) {
-	if cmd.Name() != "update" && cmd.Name() != "version" && !viper.GetBool("no-update") {
+	if utils.Channel != "dev" && cmd.Name() != "update" && cmd.Name() != "version" && !viper.GetBool("no-update") {
 		go func() {
 			UpdateDone.Add(1)
 			defer UpdateDone.Done()

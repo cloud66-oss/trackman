@@ -37,6 +37,18 @@ func NewSpinnerForStep(ctx context.Context, step Step) (*Spinner, error) {
 	return spinner, nil
 }
 
+// NewSpinnerForPreflight creates a new instance of Spinner based on the Options
+func NewSpinnerForPreflight(ctx context.Context, preflight *Preflight) (*Spinner, error) {
+	spinner, err := newSpinnerForPreflight(ctx, preflight)
+	if err != nil {
+		return nil, err
+	}
+
+	spinner.validate(ctx)
+
+	return spinner, nil
+}
+
 // NewSpinnerForProbe creates a new instance of Spinner based on the Options
 func NewSpinnerForProbe(ctx context.Context, step Step) (*Spinner, error) {
 	spinner, err := newSpinnerForProbe(ctx, step)
@@ -51,7 +63,9 @@ func NewSpinnerForProbe(ctx context.Context, step Step) (*Spinner, error) {
 
 func newSpinnerForStep(ctx context.Context, step Step) (*Spinner, error) {
 	if step.options == nil {
-		panic("no options")
+		step.options = &StepOptions{
+			Notifier: step.workflow.options.Notifier,
+		}
 	}
 
 	parts, err := shellquote.Split(step.Command)
@@ -69,9 +83,39 @@ func newSpinnerForStep(ctx context.Context, step Step) (*Spinner, error) {
 	}, nil
 }
 
+func newSpinnerForPreflight(ctx context.Context, preflight *Preflight) (*Spinner, error) {
+	if preflight.step.options == nil {
+		preflight.step.options = &StepOptions{
+			Notifier: preflight.step.workflow.options.Notifier,
+		}
+	}
+
+	parts, err := shellquote.Split(preflight.Command)
+	if err != nil {
+		return nil, err
+	}
+
+	var timeout time.Duration
+	if preflight.Timeout != nil {
+		timeout = *preflight.Timeout
+	}
+
+	return &Spinner{
+		UUID:    uuid.New().String(),
+		Name:    fmt.Sprintf("%s.preflight", preflight.step.Name),
+		cmd:     parts[0],
+		args:    parts[1:],
+		step:    *preflight.step,
+		workdir: preflight.Workdir,
+		timeout: timeout,
+	}, nil
+}
+
 func newSpinnerForProbe(ctx context.Context, step Step) (*Spinner, error) {
 	if step.options == nil {
-		panic("no options")
+		step.options = &StepOptions{
+			Notifier: step.workflow.options.Notifier,
+		}
 	}
 
 	parts, err := shellquote.Split(step.Probe.Command)
@@ -120,7 +164,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 	outChannel := NewLogWriter(ctx, logrus.DebugLevel)
 	errChannel := NewLogWriter(ctx, logrus.ErrorLevel)
 
-	logger.WithField(FldStep, s.step.Name).Tracef("Running %s with %s", s.cmd, s.args)
+	logger.WithField(FldStep, s.Name).Tracef("Running %s with %s", s.cmd, s.args)
 	cmd := exec.CommandContext(cmdCtx, s.cmd, s.args...)
 	cmd.Stderr = errChannel
 	cmd.Stdout = outChannel

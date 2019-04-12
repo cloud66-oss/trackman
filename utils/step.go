@@ -31,7 +31,7 @@ type Step struct {
 	Workdir        string            `yaml:"workdir"`
 	Probe          *Probe            `yaml:"probe"`
 	DependsOn      []string          `yaml:"depends_on"`
-	Preflight      string            `yaml:"preflight"`
+	Preflights     []Preflight       `yaml:"preflights"`
 
 	options   *StepOptions
 	workflow  *Workflow
