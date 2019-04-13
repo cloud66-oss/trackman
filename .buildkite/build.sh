@@ -28,7 +28,10 @@ echo "Building"
 
 docker run -i -e GITHUB_TOKEN=$GITHUB_TOKEN --rm -w /gopath/src/github.com/cloud66/trackman -v $(pwd):/gopath/src/github.com/cloud66/trackman cloud66/gobuildchain:2 /bin/bash << COMMANDS
 gox -ldflags "-X github.com/cloud66/trackman/utils.Version=$version -X github.com/cloud66/trackman/utils.Channel=$channel" -os="darwin linux windows" -arch="amd64" -output "build/{{.OS}}_{{.Arch}}_$version"
-ghr -soft $version build/
+if [[ channel -eq "stable" ]]
+  then
+    ghr -soft $version build/
+fi
 chown -R 999:998 build
 COMMANDS
 
