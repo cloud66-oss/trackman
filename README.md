@@ -4,7 +4,7 @@ Trackman is a command line tool and Go library that runs multiple commands in a 
 
 ## Install
 
-Head to [Trackman's releases](https://github.com/cloud66/trackman/releases/tag/1.0.0-pre) and install download the executable for your OS / Architecture. Your version will be updated to the latest version after the first run, so don't worry about the version you pickup first.
+Head to [Trackman's releases](https://github.com/cloud66/trackman/releases/latest) and install download the executable for your OS / Architecture. Your version will be updated to the latest version after the first run, so don't worry about the version you pickup first.
 
 ## Use
 
@@ -185,15 +185,30 @@ This will switch trackman to the **dev** (development) channel and will update i
 
 ## Release
 
-If you want to release a new version of Trackman, follow these steps:
+### Automatic Release
+
+All commits into `master` are built, tested and released on the `edge` channel.
+All tags are build, tested and released on the `stable` channel and the binaries are automatically uploaded to Github.
+`dev` branch is not automatically built or released.
+
+### Manual Release
+
+If you want to release a new version of Trackman manually, follow these steps:
 
 1. Start a new Release in git flow. Make sure the release name is a valid SemVer text like `1.0.0-rc1` or `2.0.4`.
 2. Run `./build.sh CHANNEL`, replacing `CHANNEL` with `dev` or `stable` or `edge`
 3. Run `./publish.sh`. This will upload the compiled binaries (previous step) to s3.
+4. Create a Github release from the tag and upload the binaries to it.
 
 The last step assumes you have a configured **AWS CLI** installed on your machine with the right permissions to push to `downloads.cloud66.com` bucket.
 
 ### Rollback
+
+### Automatic Rollback
+
+On Builtkite, run the needed release again with `FORCE` environment variable equal to `force`.
+
+### Manual Rollback
 
 If you need to rollback a release, switch to the right tag and repeat the build / publish steps but run the build step with the `--force` flag:
 
