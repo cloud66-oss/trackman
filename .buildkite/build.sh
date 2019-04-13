@@ -30,3 +30,5 @@ docker run -i --rm -w /gopath/src/github.com/cloud66/trackman -v $(pwd):/gopath/
 gox -ldflags "-X github.com/cloud66/trackman/utils.Version=$version -X github.com/cloud66/trackman/utils.Channel=$channel" -os="darwin linux windows" -arch="amd64" -output "build/{{.OS}}_{{.Arch}}_$version"
 chown -R 999:998 build
 COMMANDS
+
+source ~/.profile && s3cmd --acl-public put build/. s3://downloads.cloud66.com/trackman
