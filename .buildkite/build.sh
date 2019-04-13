@@ -1,18 +1,21 @@
 #!/bin/bash
 
+channel="dev"
 version=$(git describe --tags --always)
-force="false"
-
-if [[ $FORCE == "--force" ]]
+if [[ $BUILDKITE_TAG -ne "" ]]
   then
-    force="true"
+    version=$BUILDKITE_TAG
+    channel="stable"
 fi
-
 if [[ $BUILDKITE_BRANCH -eq "master" ]]
   then
     channel="edge"
-  else
-    channel="stable"
+fi
+
+force="false"
+if [[ $FORCE == "--force" ]]
+  then
+    force="true"
 fi
 
 echo "Building $channel/$version"
@@ -27,6 +30,7 @@ echo
 echo "Building"
 
 docker run -i -e GITHUB_TOKEN=$GITHUB_TOKEN --rm -w /gopath/src/github.com/cloud66/trackman -v $(pwd):/gopath/src/github.com/cloud66/trackman cloud66/gobuildchain:2 /bin/bash << COMMANDS
+echo "Compiling for $channel/$version"
 gox -ldflags "-X github.com/cloud66/trackman/utils.Version=$version -X github.com/cloud66/trackman/utils.Channel=$channel" -os="darwin linux windows" -arch="amd64" -output "build/{{.OS}}_{{.Arch}}_$version"
 if [[ $channel -eq "stable" ]]
   then
