@@ -1,0 +1,2 @@
+steps:
+  - command: "docker run -v $(pwd):/gopath/src/github.com/cloud66/trackman cloud66/gox gox -ldflags \"-X github.com/cloud66/trackman/utils.Version=$VERSION -X github.com/cloud66/trackman/utils.Channel=$CHANNEL\" -os=\"darwin linux windows\" -arch=\"amd64\" -output \"build/{{.OS}}_{{.Arch}}_$VERSION\""
