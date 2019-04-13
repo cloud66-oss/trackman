@@ -8,7 +8,7 @@ if [[ $FORCE == "--force" ]]
     force="true"
 fi
 
-if [ $BUILDKITE_BRANCH -eq "master"]
+if [[ $BUILDKITE_BRANCH -eq "master" ]]
   then
     channel="edge"
   else
