@@ -31,4 +31,4 @@ gox -ldflags "-X github.com/cloud66/trackman/utils.Version=$version -X github.co
 chown -R 999:998 build
 COMMANDS
 
-source ~/.profile && s3cmd --acl-public put build/. s3://downloads.cloud66.com/trackman
+source ~/.profile && s3cmd --recursive --acl-public put build/. s3://downloads.cloud66.com/trackman
