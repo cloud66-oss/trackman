@@ -15,4 +15,4 @@ if [[ $BUILDKITE_BRANCH -eq "master" ]]
     channel="stable"
 fi
 
-docker run -u $(id -u) -w /gopath/src/github.com/cloud66/trackman -v $(pwd)/cloud-66/trackman:/gopath/src/github.com/cloud66/trackman cloud66/gobuildchain gox -ldflags "-X github.com/cloud66/trackman/utils.Version=$version -X github.com/cloud66/trackman/utils.Channel=$channel" -os="darwin linux windows" -arch="amd64" -output "build/{{.OS}}_{{.Arch}}_$version"
+docker run -u $(id -u) -w /gopath/src/github.com/cloud66/trackman -v /var/lib/buildkite-agent/builds/buildkite-cloud66-com-1/cloud-66/trackman:/gopath/src/github.com/cloud66/trackman cloud66/gobuildchain gox -ldflags "-X github.com/cloud66/trackman/utils.Version=$version -X github.com/cloud66/trackman/utils.Channel=$channel" -os="darwin linux windows" -arch="amd64" -output "build/{{.OS}}_{{.Arch}}_$version"
