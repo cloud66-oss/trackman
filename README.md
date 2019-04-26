@@ -4,7 +4,7 @@ Trackman is a command line tool and Go library that runs multiple commands in a 
 
 ## Install
 
-Head to [Trackman's releases](https://github.com/cloud66/trackman/releases/latest) and install download the executable for your OS / Architecture. Your version will be updated to the latest version after the first run, so don't worry about the version you pickup first.
+Head to [Trackman's releases](https://github.com/cloud66-oss/trackman/releases/latest) and install download the executable for your OS / Architecture. Your version will be updated to the latest version after the first run, so don't worry about the version you pickup first.
 
 ## Use
 

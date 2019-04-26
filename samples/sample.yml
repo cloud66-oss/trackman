@@ -31,16 +31,16 @@ steps:
       cloud66.com/uuid: 547c8a3c
     continue_on_fail: true
   - name: trapper
-    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    workdir: "$HOME/work/go/src/github.com/cloud66-oss/trackman/samples"
     command: ruby trapper.rb
     timeout: 1s
     continue_on_fail: true
   - name: piper
-    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    workdir: "$HOME/work/go/src/github.com/cloud66-oss/trackman/samples"
     command: ruby piper.rb
   - name: dropcheck
     timeout: 3s
-    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    workdir: "$HOME/work/go/src/github.com/cloud66-oss/trackman/samples"
     command: ruby filer.rb
     probe:
       command: ruby probe.rb
@@ -48,5 +48,5 @@ steps:
   - name: arger
     metadata:
       cloud66.com/uuid: arger-123
-    workdir: "$HOME/work/go/src/github.com/cloud66/trackman/samples"
+    workdir: "$HOME/work/go/src/github.com/cloud66-oss/trackman/samples"
     command: "ruby arger.rb hello {{ index .Metadata \"cloud66.com/uuid\" }}"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cloud66/trackman/cmd"
+	"github.com/cloud66-oss/trackman/cmd"
 )
 
 func main() {

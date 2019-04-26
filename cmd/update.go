@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cloud66/trackman/utils"
+	"github.com/cloud66-oss/trackman/utils"
 	"github.com/khash/updater"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

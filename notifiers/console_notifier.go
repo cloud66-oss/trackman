@@ -3,7 +3,7 @@ package notifiers
 import (
 	"context"
 
-	"github.com/cloud66/trackman/utils"
+	"github.com/cloud66-oss/trackman/utils"
 )
 
 // ConsoleNotify writes notifications to console

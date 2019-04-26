@@ -8,13 +8,11 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/cloud66-oss/trackman/notifiers"
+	"github.com/cloud66-oss/trackman/utils"
 	"github.com/sirupsen/logrus"
-
-	"github.com/spf13/viper"
-
-	"github.com/cloud66/trackman/notifiers"
-	"github.com/cloud66/trackman/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var runCmd = &cobra.Command{
