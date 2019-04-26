@@ -23,15 +23,15 @@ type StepOptions struct {
 
 // Step is a single running Step
 type Step struct {
-	Metadata       map[string]string `yaml:"metadata"`
-	Name           string            `yaml:"name"`
-	Command        string            `yaml:"command"`
-	ContinueOnFail bool              `yaml:"continue_on_fail"`
-	Timeout        *time.Duration    `yaml:"timeout"`
-	Workdir        string            `yaml:"workdir"`
-	Probe          *Probe            `yaml:"probe"`
-	DependsOn      []string          `yaml:"depends_on"`
-	Preflights     []Preflight       `yaml:"preflights"`
+	Metadata       map[string]string `yaml:"metadata" json:"metadata"`
+	Name           string            `yaml:"name" json:"name"`
+	Command        string            `yaml:"command" json:"command"`
+	ContinueOnFail bool              `yaml:"continue_on_fail" json:"continue_on_fail"`
+	Timeout        *time.Duration    `yaml:"timeout" json:"timeout"`
+	Workdir        string            `yaml:"workdir" json:"workdir"`
+	Probe          *Probe            `yaml:"probe" json:"probe"`
+	DependsOn      []string          `yaml:"depends_on" json:"depends_on"`
+	Preflights     []Preflight       `yaml:"preflights" json:"preflights"`
 
 	options   *StepOptions
 	workflow  *Workflow

@@ -8,10 +8,10 @@ import (
 
 // Preflight is a check that runs at the beginning of the workflow
 type Preflight struct {
-	Command string         `yaml:"command"`
-	Message string         `yaml:"message"`
-	Workdir string         `yaml:"workdir"`
-	Timeout *time.Duration `yaml:"timeout"`
+	Command string         `yaml:"command" json:"command"`
+	Message string         `yaml:"message" json:"message"`
+	Workdir string         `yaml:"workdir" json:"workdir"`
+	Timeout *time.Duration `yaml:"timeout" json:"timeout"`
 
 	step *Step
 }

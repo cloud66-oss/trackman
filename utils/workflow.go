@@ -24,9 +24,9 @@ type WorkflowOptions struct {
 
 // Workflow is the internal object to hold a workflow file
 type Workflow struct {
-	Version  string
-	Metadata map[string]string
-	Steps    []*Step
+	Version  string            `yaml:"version" json:"version"`
+	Metadata map[string]string `yaml:"metadata" json:"metadata"`
+	Steps    []*Step           `yaml:"steps" json:"steps"`
 
 	options    *WorkflowOptions
 	logger     *logrus.Logger
