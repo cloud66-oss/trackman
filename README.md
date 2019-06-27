@@ -1,3 +1,5 @@
+<img src="http://cdn2-cloud66-com.s3.amazonaws.com/images/oss-sponsorship.png" width=150/>
+
 # Trackman
 
 Trackman is a command line tool and Go library that runs multiple commands in a workflow. It support parallel steps, step dependencies, async steps and success checkers.
