@@ -32,6 +32,8 @@ type Step struct {
 	Probe          *Probe            `yaml:"probe" json:"probe"`
 	DependsOn      []string          `yaml:"depends_on" json:"depends_on"`
 	Preflights     []Preflight       `yaml:"preflights" json:"preflights"`
+	AskToProceed   bool              `yaml:"ask_to_proceed" json:"ask_to_proceed"`
+	ShowCommand    bool              `yaml:"show_command" json:"show_command"`
 
 	options   *StepOptions
 	workflow  *Workflow

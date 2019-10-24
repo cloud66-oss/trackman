@@ -27,7 +27,7 @@ var (
 func init() {
 	UpdateDone = &sync.WaitGroup{}
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.trackman.yaml)")
 	rootCmd.PersistentFlags().String("log-level", "info", "log level. Use debug to see process output")
 	rootCmd.PersistentFlags().Bool("no-update", false, "turn off auto update")
 
