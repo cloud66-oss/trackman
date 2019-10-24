@@ -29,9 +29,11 @@ func init() {
 	runCmd.Flags().StringVarP(&workflowFile, "file", "f", "", "workflow file to run")
 	runCmd.Flags().DurationP("timeout", "", 10*time.Second, "global timeout unless overwritten by a step")
 	runCmd.Flags().IntP("concurrency", "", runtime.NumCPU()-1, "maximum number of concurrent steps to run")
+	runCmd.Flags().BoolP("yes", "y", false, "Answer Yes to all confirmation questions")
 
 	_ = viper.BindPFlag("timeout", runCmd.Flags().Lookup("timeout"))
 	_ = viper.BindPFlag("concurrency", runCmd.Flags().Lookup("concurrency"))
+	_ = viper.BindPFlag("confirm.yes", runCmd.Flags().Lookup("yes"))
 
 	rootCmd.AddCommand(runCmd)
 }

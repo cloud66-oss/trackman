@@ -69,7 +69,7 @@ steps:
 
 This workflow will run `kubectl apply -f manifest.yml` first. If it returns with exist status 0 (it ran successfully), will then run `kubectl wait --for=condition=complete job/myjob` until it returns with exist status 0 and considers the step successful.
 
-Trackman can continue running if a step fails if the step has a `continue_on_failure: true`.
+Trackman can continue running if a step fails if the step has a `continue_on_fail: true`.
 
 ### Timeouts
 

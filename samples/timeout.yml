@@ -1,0 +1,11 @@
+version: 1
+steps:
+  - name: hello
+    command: echo "Hello, World!"
+    depends_on:
+      - timeout
+  - name: timeout
+    ask_to_proceed: true
+    command: sleep 20
+    timeout: 10s
+    continue_on_fail: true

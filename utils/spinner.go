@@ -7,9 +7,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/kballard/go-shellquote"
-
 	"github.com/google/uuid"
+	"github.com/kballard/go-shellquote"
 	"github.com/sirupsen/logrus"
 )
 
@@ -183,7 +182,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 		if cmdCtx.Err() == context.DeadlineExceeded {
 			s.push(ctx, NewEvent(s, EventRunTimeout, nil))
 
-			return fmt.Errorf("step %s timed out after %s", s.step.Name, s.timeout)
+			return fmt.Errorf("Timed out after %s", s.timeout)
 		}
 
 		if exitErr, ok := err.(*exec.ExitError); ok {
