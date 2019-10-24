@@ -1,0 +1,13 @@
+version: 1
+steps:
+  - name: run
+    command: kubectl apply -f job.yml
+    probe:
+      command: kubectl wait --for=condition=complete job/pi
+      timeout: 1m
+    preflights:
+      - command: kubectl version
+  - name: cleanup
+    command: kubectl delete job pi
+    depends_on:
+      - run
