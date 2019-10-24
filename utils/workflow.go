@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
-
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/sync/semaphore"
 	"gopkg.in/yaml.v2"
 )
@@ -165,6 +165,18 @@ func (w *Workflow) Run(ctx context.Context) (runErrors error, stepErrors error) 
 			}()
 
 			w.logger.WithField(FldStep, toRun.Name).Trace("Preparing to run")
+
+			if toRun.ShowCommand {
+				w.logger.WithField(FldStep, toRun.Name).Info(toRun.Command)
+			}
+
+			if toRun.AskToProceed && !viper.GetBool("confirm.yes") {
+				// we need an interactive permission for this
+				if !confirm(fmt.Sprintf("Run %s?", toRun.Name), 1) {
+					w.logger.WithField(FldStep, toRun.Name).Info("Stopping execution")
+					w.stop(ctx)
+				}
+			}
 
 			err := toRun.Run(ctx)
 			if err != nil {

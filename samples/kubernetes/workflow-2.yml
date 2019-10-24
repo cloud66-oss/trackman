@@ -1,0 +1,8 @@
+version: 1
+steps:
+  - name: run
+    command: kubectl apply -f job.yml
+    timeout: 1m
+    probe:
+      command: kubectl wait --for=condition=complete job/pi
+      timeout: 1m
