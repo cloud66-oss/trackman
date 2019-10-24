@@ -139,7 +139,44 @@ steps:
         message: "Oh nose!"
 ```
 
+## Workflow Attributes
+
+The following attributes can be set for the workflow:
+| Attribute  | Description  | Default  |
+|---|---|---|
+| version  | Workflow format version | `1` |
+| version  | Any metadata for the workflow | None |
+| steps  | List of all workflow steps (See below) | [] |
+
+## Step Attributes
+
+The following attributes can be set for each step:
+
+| Attribute  | Description  | Default  |
+|---|---|---|
+| metadata  | Any metadata for the step  | None |
+| name  | Given name for the step  | `''` |
+| command  | Command to run, including arguments  | `''` |
+| continue_on_fail  | Continue to the next step even after failure  | `false` |
+| timeout  | Timeout after which the step will be stopped. A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".   | Never |
+| workdir  | Work directory for the step | None |
+| probe  | Health probe definition. See above | None |
+| depends_on  | List of the steps this one depends on (should run after all of them have successfully finished) | [] |
+| preflights  | List of pre-flight checks (see above) | None |
+| ask_to_proceed  | Stops the execution of the workflow and asks the user for a confirmation to continue | `false` |
+| show_command  | Shows the command and arguments for this step before running it | `false` |
+
 ## Trackman CLI
+
+### Global Options
+
+The CLI supports the following global options:
+
+| Option  | Description  | Default  |
+|---|---|---|
+| config  | Config file | $HOME/.trackman.yaml |
+| log-level  | Log level | info |
+| no-update  | Don't update trackman CLI automatically | false |
 
 ### Run
 
@@ -148,6 +185,18 @@ Runs the given workflow. Use `--help` for more details.
 ```bash
 $ trackman run -f file.yml
 ```
+
+### Params
+
+Run command supports the following options
+
+| Option  | Description  | Default  |
+|---|---|---|
+| file, f  | Workflow file | None |
+| timeout | Timeout after which the step will be stopped. A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 10 seconds |
+| concurrency  | Number of concurrent steps to run | Number of CPUs - 1 |
+| yes, y  | Answer Yes to all `ask_to_proceed` questions | false |
+
 
 ### Update
 

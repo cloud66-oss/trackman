@@ -6,6 +6,7 @@ steps:
       - timeout
   - name: timeout
     ask_to_proceed: true
+    show_command: true
     command: sleep 20
     timeout: 10s
     continue_on_fail: true

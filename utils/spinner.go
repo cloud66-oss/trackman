@@ -164,6 +164,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 	errChannel := NewLogWriter(ctx, logrus.ErrorLevel)
 
 	logger.WithField(FldStep, s.Name).Tracef("Running %s with %s", s.cmd, s.args)
+
 	cmd := exec.CommandContext(cmdCtx, s.cmd, s.args...)
 	cmd.Stderr = errChannel
 	cmd.Stdout = outChannel
