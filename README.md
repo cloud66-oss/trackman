@@ -165,6 +165,7 @@ The following attributes can be set for each step:
 | preflights  | List of pre-flight checks (see above) | None |
 | ask_to_proceed  | Stops the execution of the workflow and asks the user for a confirmation to continue | `false` |
 | show_command  | Shows the command and arguments for this step before running it | `false` |
+| disabled | Disables the step (doesn't run it). This can be used for debugging or other selective workflow manipulations | `false` |
 
 ## Trackman CLI
 
@@ -175,8 +176,8 @@ The CLI supports the following global options:
 | Option  | Description  | Default  |
 |---|---|---|
 | config  | Config file | $HOME/.trackman.yaml |
-| log-level  | Log level | info |
-| no-update  | Don't update trackman CLI automatically | false |
+| log-level  | Log level | `info` |
+| no-update  | Don't update trackman CLI automatically | `false` |
 
 ### Run
 

@@ -34,6 +34,7 @@ type Step struct {
 	Preflights     []Preflight       `yaml:"preflights" json:"preflights"`
 	AskToProceed   bool              `yaml:"ask_to_proceed" json:"ask_to_proceed"`
 	ShowCommand    bool              `yaml:"show_command" json:"show_command"`
+	Disabled       bool              `yaml:"disabled" json:"disabled"`
 
 	options   *StepOptions
 	workflow  *Workflow
@@ -125,6 +126,11 @@ func (s *Step) Run(ctx context.Context) error {
 	defer func() { s.status = stepDone }()
 
 	logger, ctx := LoggerContext(ctx)
+
+	if s.Disabled {
+		logger.WithField(FldStep, s.Name).Info("Disabled step. Skipping")
+		return nil
+	}
 
 	err := s.parseCommand(ctx)
 	if err != nil {
