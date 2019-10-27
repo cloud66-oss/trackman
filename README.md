@@ -113,6 +113,8 @@ You can use the metadata as arguments of a step:
 
 Trackman can use Golang template language.
 
+`Metadata` is an attribute on both Step and the entire workflow. You can use `MergedMetadata` instead of `Metadata` to gain access to a merged list of meta data from the step and the workflow. If any value is defined in both places, step will override workflow.
+
 ### Work directory
 
 To set the working directory of a step, use `workdir` attribute on a step.
@@ -122,6 +124,15 @@ To set the working directory of a step, use `workdir` attribute on a step.
 All environment variables in commands and their arguments are replaced with `$` values. For example `$HOME` will be replaced with the right home directory address. This is the same for all environment variables available to Trackman at the time it starts.
 
 All environment variables available to Trackman when it starts will be passed on to the step commands.
+
+To specify environment variables that are applies only to a single step, use the `env` attribute:
+
+```yaml
+  - name: dump
+    env: ["FOO=BAR"]
+```
+
+If the assigned environment variable already exists, it will overwrite the OS environment variable for this step.
 
 ### Preflight Checks
 
@@ -165,6 +176,8 @@ The following attributes can be set for each step:
 | preflights  | List of pre-flight checks (see above) | None |
 | ask_to_proceed  | Stops the execution of the workflow and asks the user for a confirmation to continue | `false` |
 | show_command  | Shows the command and arguments for this step before running it | `false` |
+| disabled | Disables the step (doesn't run it). This can be used for debugging or other selective workflow manipulations | `false` |
+| env | Environment variables specific to this step | [] |
 
 ## Trackman CLI
 
@@ -175,8 +188,8 @@ The CLI supports the following global options:
 | Option  | Description  | Default  |
 |---|---|---|
 | config  | Config file | $HOME/.trackman.yaml |
-| log-level  | Log level | info |
-| no-update  | Don't update trackman CLI automatically | false |
+| log-level  | Log level | `info` |
+| no-update  | Don't update trackman CLI automatically | `false` |
 
 ### Run
 
