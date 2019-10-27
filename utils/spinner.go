@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"syscall"
 	"time"
@@ -19,6 +20,7 @@ type Spinner struct {
 
 	cmd     string
 	args    []string
+	env     []string
 	timeout time.Duration
 	workdir string
 	step    Step
@@ -78,6 +80,7 @@ func newSpinnerForStep(ctx context.Context, step Step) (*Spinner, error) {
 		cmd:     parts[0],
 		args:    parts[1:],
 		step:    step,
+		env:     step.Env,
 		workdir: step.Workdir,
 	}, nil
 }
@@ -106,6 +109,7 @@ func newSpinnerForPreflight(ctx context.Context, preflight *Preflight) (*Spinner
 		args:    parts[1:],
 		step:    *preflight.step,
 		workdir: preflight.Workdir,
+		env:     preflight.step.Env,
 		timeout: timeout,
 	}, nil
 }
@@ -128,6 +132,7 @@ func newSpinnerForProbe(ctx context.Context, step Step) (*Spinner, error) {
 		cmd:     parts[0],
 		args:    parts[1:],
 		step:    step,
+		env:     step.Env,
 		workdir: step.Workdir,
 	}, nil
 }
@@ -168,6 +173,12 @@ func (s *Spinner) Run(ctx context.Context) error {
 	cmd := exec.CommandContext(cmdCtx, s.cmd, s.args...)
 	cmd.Stderr = errChannel
 	cmd.Stdout = outChannel
+	envs := os.Environ()
+	for _, env := range s.env {
+		envs = append(envs, env)
+	}
+
+	cmd.Env = envs
 	cmd.Dir = s.workdir
 
 	err := cmd.Start()

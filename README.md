@@ -123,6 +123,15 @@ All environment variables in commands and their arguments are replaced with `$` 
 
 All environment variables available to Trackman when it starts will be passed on to the step commands.
 
+To specify environment variables that are applies only to a single step, use the `env` attribute:
+
+```yaml
+  - name: dump
+    env: ["FOO=BAR"]
+```
+
+If the assigned environment variable already exists, it will overwrite the OS environment variable for this step.
+
 ### Preflight Checks
 
 You can run some checks before the workflow starts. These could be checking for certain binaries or packages to be installed on the machine before the workflow starts.
@@ -166,6 +175,7 @@ The following attributes can be set for each step:
 | ask_to_proceed  | Stops the execution of the workflow and asks the user for a confirmation to continue | `false` |
 | show_command  | Shows the command and arguments for this step before running it | `false` |
 | disabled | Disables the step (doesn't run it). This can be used for debugging or other selective workflow manipulations | `false` |
+| env | Environment variables specific to this step | [] |
 
 ## Trackman CLI
 

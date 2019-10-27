@@ -29,6 +29,7 @@ type Step struct {
 	ContinueOnFail bool              `yaml:"continue_on_fail" json:"continue_on_fail"`
 	Timeout        *time.Duration    `yaml:"timeout" json:"timeout"`
 	Workdir        string            `yaml:"workdir" json:"workdir"`
+	Env            []string          `yaml:"env" json:"env"`
 	Probe          *Probe            `yaml:"probe" json:"probe"`
 	DependsOn      []string          `yaml:"depends_on" json:"depends_on"`
 	Preflights     []Preflight       `yaml:"preflights" json:"preflights"`
