@@ -113,6 +113,8 @@ You can use the metadata as arguments of a step:
 
 Trackman can use Golang template language.
 
+`Metadata` is an attribute on both Step and the entire workflow. You can use `MergedMetadata` instead of `Metadata` to gain access to a merged list of meta data from the step and the workflow. If any value is defined in both places, step will override workflow.
+
 ### Work directory
 
 To set the working directory of a step, use `workdir` attribute on a step.

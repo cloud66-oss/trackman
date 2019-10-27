@@ -54,6 +54,24 @@ func (s *Step) String() string {
 	return str + "\n" + strings.Join(deps, ",")
 }
 
+// MergedMetadata merges step and workflow metadata
+func (s *Step) MergedMetadata() map[string]string {
+	if s.Metadata == nil {
+		return s.workflow.Metadata
+	}
+
+	result := make(map[string]string, len(s.workflow.Metadata))
+	for k, v := range s.workflow.Metadata {
+		result[k] = v
+	}
+
+	for k, v := range s.Metadata {
+		result[k] = v
+	}
+
+	return result
+}
+
 // shouldRun returns a step that can be run, hasn't started, isn't done and isn't marked to be done
 func (s *Step) shouldRun() bool {
 	// has this run or marked to run?
