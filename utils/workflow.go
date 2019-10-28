@@ -170,7 +170,7 @@ func (w *Workflow) Run(ctx context.Context) (runErrors error, stepErrors error) 
 				w.logger.WithField(FldStep, toRun.Name).Info(toRun.Command)
 			}
 
-			if toRun.AskToProceed && !viper.GetBool("confirm.yes") {
+			if !toRun.Disabled && toRun.AskToProceed && !viper.GetBool("confirm.yes") {
 				// we need an interactive permission for this
 				if !confirm(fmt.Sprintf("Run %s?", toRun.Name), 1) {
 					w.logger.WithField(FldStep, toRun.Name).Info("Stopping execution")
