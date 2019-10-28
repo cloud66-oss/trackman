@@ -29,11 +29,13 @@ type Step struct {
 	ContinueOnFail bool              `yaml:"continue_on_fail" json:"continue_on_fail"`
 	Timeout        *time.Duration    `yaml:"timeout" json:"timeout"`
 	Workdir        string            `yaml:"workdir" json:"workdir"`
+	Env            []string          `yaml:"env" json:"env"`
 	Probe          *Probe            `yaml:"probe" json:"probe"`
 	DependsOn      []string          `yaml:"depends_on" json:"depends_on"`
 	Preflights     []Preflight       `yaml:"preflights" json:"preflights"`
 	AskToProceed   bool              `yaml:"ask_to_proceed" json:"ask_to_proceed"`
 	ShowCommand    bool              `yaml:"show_command" json:"show_command"`
+	Disabled       bool              `yaml:"disabled" json:"disabled"`
 
 	options   *StepOptions
 	workflow  *Workflow
@@ -50,6 +52,24 @@ func (s *Step) String() string {
 	}
 
 	return str + "\n" + strings.Join(deps, ",")
+}
+
+// MergedMetadata merges step and workflow metadata
+func (s *Step) MergedMetadata() map[string]string {
+	if s.Metadata == nil {
+		return s.workflow.Metadata
+	}
+
+	result := make(map[string]string, len(s.workflow.Metadata))
+	for k, v := range s.workflow.Metadata {
+		result[k] = v
+	}
+
+	for k, v := range s.Metadata {
+		result[k] = v
+	}
+
+	return result
 }
 
 // shouldRun returns a step that can be run, hasn't started, isn't done and isn't marked to be done
@@ -125,6 +145,11 @@ func (s *Step) Run(ctx context.Context) error {
 	defer func() { s.status = stepDone }()
 
 	logger, ctx := LoggerContext(ctx)
+
+	if s.Disabled {
+		logger.WithField(FldStep, s.Name).Info("Disabled step. Skipping")
+		return nil
+	}
 
 	err := s.parseCommand(ctx)
 	if err != nil {

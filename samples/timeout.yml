@@ -5,7 +5,8 @@ steps:
     depends_on:
       - timeout
   - name: timeout
-    ask_to_proceed: true
+    ask_to_proceed: false
+    disabled: true
     show_command: true
     command: sleep 20
     timeout: 10s
