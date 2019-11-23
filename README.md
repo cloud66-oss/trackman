@@ -56,7 +56,7 @@ You can make a step dependent on more than one step. Such step will only run onc
 
 ### Success and Failure
 
-By default a step is considered successfully finished when it's done with an exist status of 0.
+By default a step is considered successfully finished when it's done with an exit status of 0.
 
 Sometimes however, there are tasks that run asynchronously and return with 0 immediately but their success will be known later. For example when `kubectl` applies a new configuration to a cluster, its success cannot be determined by the exit status. Trackman supports this by running **probes**.
 
@@ -69,7 +69,7 @@ steps:
       command: kubectl wait --for=condition=complete job/myjob
 ```
 
-This workflow will run `kubectl apply -f manifest.yml` first. If it returns with exist status 0 (it ran successfully), will then run `kubectl wait --for=condition=complete job/myjob` until it returns with exist status 0 and considers the step successful.
+This workflow will run `kubectl apply -f manifest.yml` first. If it returns with exit status 0 (it ran successfully), will then run `kubectl wait --for=condition=complete job/myjob` until it returns with exit status 0 and considers the step successful.
 
 Trackman can continue running if a step fails if the step has a `continue_on_fail: true`.
 
