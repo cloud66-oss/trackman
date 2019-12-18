@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,7 +18,7 @@ import (
 
 // WorkflowOptions provides options for a workflow
 type WorkflowOptions struct {
-	Notifier    func(ctx context.Context, event *Event) error
+	Notifier    func(ctx context.Context, logger *logrus.Logger, event *Event) error
 	Concurrency int
 	Timeout     time.Duration
 }
@@ -27,6 +28,7 @@ type Workflow struct {
 	Version  string            `yaml:"version" json:"version"`
 	Metadata map[string]string `yaml:"metadata" json:"metadata"`
 	Steps    []*Step           `yaml:"steps" json:"steps"`
+	Logger   *LogDefinition    `yaml:"logger" json:"logger"`
 
 	options    *WorkflowOptions
 	logger     *logrus.Logger
@@ -49,16 +51,20 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 		panic("no notifier")
 	}
 
-	workflow.logger, _ = LoggerContext(ctx)
-
 	if workflow.Version != "1" {
-		workflow.logger.Fatal("invalid workflow version")
+		return nil, errors.New("invalid workflow version")
 	}
 
 	workflow.gatekeeper = semaphore.NewWeighted(int64(options.Concurrency))
 	workflow.options = options
 	workflow.stopFlag = false
 	workflow.signal = &sync.Mutex{}
+
+	logger, err := NewLogger(workflow.Logger, NewLoggingContext(workflow, nil))
+	if err != nil {
+		return nil, err
+	}
+	workflow.logger = logger
 
 	// validate depends on and link them to the step
 	// TODO: check for circular dependencies
@@ -67,11 +73,25 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 		for _, priorStepName := range step.DependsOn {
 			priorStep := workflow.findStepByName(priorStepName)
 			if priorStep == nil {
-				return nil, fmt.Errorf("invalid step name in runs_after for step %s (%s)", step.Name, priorStepName)
+				return nil, fmt.Errorf("invalid step name in depends_on for step %s (%s)", step.Name, priorStepName)
 			}
 
 			workflow.Steps[idx].dependsOn = append(workflow.Steps[idx].dependsOn, priorStep)
 		}
+
+		// setup logging for this step
+		if step.Logger == nil {
+			logger, err = NewLogger(workflow.Logger, NewLoggingContext(workflow, step))
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			logger, err = NewLogger(step.Logger, NewLoggingContext(workflow, step))
+			if err != nil {
+				return nil, err
+			}
+		}
+		step.logger = logger
 	}
 
 	return workflow, nil
@@ -99,13 +119,12 @@ func (w *Workflow) preflights(ctx context.Context) (preflights []*Preflight) {
 }
 
 func (w *Workflow) preflightChecks(ctx context.Context) error {
-	logger, _ := LoggerContext(ctx)
 	for _, preflight := range w.preflights(ctx) {
 		err := preflight.Run(ctx)
 		if err != nil {
 			if preflight.Message != "" {
 				// dump the message
-				logger.WithField(FldStep, fmt.Sprintf("%s.preflight", preflight.step.Name)).Error(preflight.Message)
+				w.logger.WithField(FldStep, fmt.Sprintf("%s.preflight", preflight.step.Name)).Error(preflight.Message)
 			}
 			return err
 		}
@@ -116,8 +135,8 @@ func (w *Workflow) preflightChecks(ctx context.Context) error {
 
 // Run runs the entire workflow
 func (w *Workflow) Run(ctx context.Context) (runErrors error, stepErrors error) {
-	w.logger, ctx = LoggerContext(ctx)
-
+	// if w.Logger is null, it's going to use the defaults which should be the same as with the app
+	// since the default values from from the same place
 	w.logger.Info("Running Preflight checks")
 	err := w.preflightChecks(ctx)
 	if err != nil {

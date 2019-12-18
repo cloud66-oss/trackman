@@ -160,6 +160,7 @@ The following attributes can be set for the workflow:
 | version  | Workflow format version | `1` |
 | version  | Any metadata for the workflow | None |
 | steps  | List of all workflow steps (See below) | [] |
+| logger | Workflow Logger | Default Logger (see below) |
 
 ## Step Attributes
 
@@ -180,6 +181,7 @@ The following attributes can be set for each step:
 | show_command  | Shows the command and arguments for this step before running it | `false` |
 | disabled | Disables the step (doesn't run it). This can be used for debugging or other selective workflow manipulations | `false` |
 | env | Environment variables specific to this step | [] |
+| logger | Step logger | Workflow logger (see below) |
 
 ## Trackman CLI
 
@@ -191,6 +193,9 @@ The CLI supports the following global options:
 |---|---|---|
 | config  | Config file | $HOME/.trackman.yaml |
 | log-level  | Log level | `info` |
+| log-type  | Log Type. Valid options are `stdout`, `stderr`, `discard`, `file` | `stdout` |
+| log-format  | Log Format. Valid options are `text` and `json` | `text` |
+| log-file  | Log File. If `file` is used as `log-type` then this is used as the filename (path can be included) |  |
 | no-update  | Don't update trackman CLI automatically | `false` |
 
 ### Run
@@ -211,6 +216,50 @@ Run command supports the following options
 | timeout | Timeout after which the step will be stopped. A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 10 seconds |
 | concurrency  | Number of concurrent steps to run | Number of CPUs - 1 |
 | yes, y  | Answer Yes to all `ask_to_proceed` questions | false |
+
+### Logging
+
+By default, trackman logs all output to `stdout` and at the `info` level. All logs from all steps are also combined and shown together as they are produced.
+
+You can specify log configuration at the workflow level or for each individual step. If a step has no specific log configuration, it will inherit the configuration of the workflow. Preflight and Probes use the same log configuration as their step.
+
+Log configuration can be defined with the following options:
+
+| Option  | Description  | Default  |
+|---|---|---|
+| type  | Logger Type. Valid options are `stdout`, `stderr`, `discard` and `file` | `stdout` |
+| level  | Log level. Valid values are `error`, `warn`, `info` and `debug` | `info` |
+| format  | Log Format. Valid options are `text` and `json` | `text` |
+| destination  | Log file (can include path). If type is `file` this is used as the file name. If no path is provided, the current directory is used. | |
+
+Here is an example:
+
+```yaml
+version: 1
+logger:
+  type: "file"
+  format: "json"
+  destination: "workflow.json"
+steps:
+  - name: step1
+    logger:
+      type: "stdout"
+  - name: step2
+```
+
+In the example above, the workflow and step2 share a file called `workflow.json` for logging. Step1 however will log text to `stdout`.
+
+You can use any attribute from Workflow and Step in naming your log file. Here is an example:
+
+```yaml
+version: 1
+logger:
+  type: "file"
+  format: "json"
+  destination: "logs/{{ if .Step }}{{.Step.Name}}{{ else }}workflow{{ end }}.json"
+```
+
+The example above, will use `workflow.json` for workflow logs but a file named after the step name for each step. You can use Golang templates for this feature. The template is rendered with a context of `Workflow` and `Step` (in the example above, `.Step` is used)
 
 
 ### Update
