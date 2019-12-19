@@ -10,12 +10,14 @@ import (
 // GotermHook is a logrus hook to write logrus events to a Goterm box
 type GotermHook struct {
 	box *goterm.Box
+	y   int
 }
 
 // NewGotermHook creates a new Goterm box
-func NewGotermHook() (*GotermHook, error) {
+func NewGotermHook(box *goterm.Box, y int) (*GotermHook, error) {
 	g := &GotermHook{
-		box: goterm.NewBox(100|goterm.PCT, 10, 0),
+		box: box,
+		y:   y,
 	}
 
 	return g, nil
@@ -29,7 +31,7 @@ func (g *GotermHook) Fire(entry *logrus.Entry) error {
 	}
 
 	fmt.Fprint(g.box, value)
-	goterm.Print(goterm.MoveTo(g.box.String(), 1, 1))
+	goterm.Print(goterm.MoveTo(g.box.String(), 1, g.y))
 	goterm.Flush()
 
 	return nil

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sync"
+	"sync/atomic"
 
 	"github.com/buger/goterm"
 	"github.com/sirupsen/logrus"
@@ -15,6 +16,7 @@ import (
 
 var fileRegister []*os.File
 var fileRegisterSignal *sync.Mutex
+var concurrentLogs uint32
 
 func init() {
 	fileRegisterSignal = &sync.Mutex{}
@@ -114,8 +116,9 @@ func NewLogger(baseDefinition *LogDefinition, loggingContext *LoggingContext) (*
 	if definition.Type == "stdout" {
 		logger.SetOutput(os.Stdout)
 	} else if definition.Type == "demux" {
-		goterm.Clear()
-		goTermHook, err := NewGotermHook()
+		//goterm.Clear()
+		box, y, err := getBox(loggingContext)
+		goTermHook, err := NewGotermHook(box, y)
 		if err != nil {
 			return nil, err
 		}
@@ -158,4 +161,13 @@ func NewLogger(baseDefinition *LogDefinition, loggingContext *LoggingContext) (*
 	}
 
 	return logger, nil
+}
+
+func getBox(loggingContext *LoggingContext) (*goterm.Box, uint32, error) {
+	atomic.AddUint32(&concurrentLogs, 1)
+	height := goterm.Height()
+	unitHeight := height / viper.GetInt("concurrency")
+	box := goterm.NewBox(100|goterm.PCT, unitHeight, 0)
+
+	return box, uint32(unitHeight) * concurrentLogs, nil
 }
