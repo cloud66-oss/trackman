@@ -10,6 +10,7 @@ import (
 
 	"github.com/cloud66-oss/trackman/notifiers"
 	"github.com/cloud66-oss/trackman/utils"
+	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,18 +30,18 @@ func init() {
 	runCmd.Flags().DurationP("timeout", "", 10*time.Second, "global timeout unless overwritten by a step")
 	runCmd.Flags().IntP("concurrency", "", runtime.NumCPU()-1, "maximum number of concurrent steps to run")
 	runCmd.Flags().BoolP("yes", "y", false, "Answer Yes to all confirmation questions")
-	runCmd.Flags().BoolP("demux", "", false, "Demux logs for each parallel run")
 
 	_ = viper.BindPFlag("timeout", runCmd.Flags().Lookup("timeout"))
 	_ = viper.BindPFlag("concurrency", runCmd.Flags().Lookup("concurrency"))
 	_ = viper.BindPFlag("confirm.yes", runCmd.Flags().Lookup("yes"))
-	_ = viper.BindPFlag("demux", runCmd.Flags().Lookup("demux"))
 
 	rootCmd.AddCommand(runCmd)
 }
 
 func runExec(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
+	app := tview.NewApplication()
+	ctx = context.WithValue(ctx, utils.CtxApplication, app)
 
 	options := &utils.WorkflowOptions{
 		Notifier:    notifiers.ConsoleNotify,
@@ -54,7 +55,7 @@ func runExec(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	logger, err := utils.NewLogger(workflow.Logger, utils.NewLoggingContext(workflow, nil))
+	logger, err := utils.NewLogger(ctx, workflow.Logger, utils.NewLoggingContext(workflow, nil))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

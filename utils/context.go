@@ -6,4 +6,7 @@ type CtxKey struct{ int }
 var (
 	// CtxSpinner is the key to a spinner on the context
 	CtxSpinner = CtxKey{1}
+
+	// CtxApplication is a TView Application
+	CtxApplication = CtxKey{2}
 )

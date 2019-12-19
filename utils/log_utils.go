@@ -2,15 +2,17 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"os"
 	"sync"
 
-	"github.com/spf13/viper"
-
+	"github.com/rivo/tview"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 var fileRegister []*os.File
@@ -106,13 +108,19 @@ func DefaultLogDefinition(baseDefinition *LogDefinition) *LogDefinition {
 }
 
 // NewLogger creates a new logger instance and sets the right log level based
-func NewLogger(baseDefinition *LogDefinition, loggingContext *LoggingContext) (*logrus.Logger, error) {
+func NewLogger(ctx context.Context, baseDefinition *LogDefinition, loggingContext *LoggingContext) (*logrus.Logger, error) {
 	definition := DefaultLogDefinition(baseDefinition)
 
 	logger := logrus.New()
 
 	if definition.Type == "stdout" {
 		logger.SetOutput(os.Stdout)
+	} else if definition.Type == "stdout-demux" {
+		writer, err := createLogView(ctx, loggingContext)
+		if err != nil {
+			return nil, err
+		}
+		logger.SetOutput(writer)
 	} else if definition.Type == "stderr" {
 		logger.SetOutput(os.Stderr)
 	} else if definition.Type == "discard" {
@@ -149,4 +157,31 @@ func NewLogger(baseDefinition *LogDefinition, loggingContext *LoggingContext) (*
 	}
 
 	return logger, nil
+}
+
+func createLogView(ctx context.Context, loggingContext *LoggingContext) (io.Writer, error) {
+	if ctx.Value(CtxApplication) == nil {
+		panic("no application found on the context")
+	}
+
+	app := ctx.Value(CtxApplication).(*tview.Application)
+
+	textView := tview.NewTextView().
+		SetDynamicColors(true).
+		SetChangedFunc(func() {
+			app.Draw()
+		})
+
+	var title string
+	if loggingContext.Step == nil {
+		title = "workflow"
+	} else {
+		title = loggingContext.Step.Name
+	}
+
+	textView.SetBorder(true).SetTitle(title)
+	if err := app.SetRoot(textView, true).Run(); err != nil {
+		return nil, err
+	}
+	return tview.ANSIWriter(textView), nil
 }

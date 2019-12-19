@@ -60,7 +60,7 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 	workflow.stopFlag = false
 	workflow.signal = &sync.Mutex{}
 
-	logger, err := NewLogger(workflow.Logger, NewLoggingContext(workflow, nil))
+	logger, err := NewLogger(ctx, workflow.Logger, NewLoggingContext(workflow, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -81,12 +81,12 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 
 		// setup logging for this step
 		if step.Logger == nil {
-			logger, err = NewLogger(workflow.Logger, NewLoggingContext(workflow, step))
+			logger, err = NewLogger(ctx, workflow.Logger, NewLoggingContext(workflow, step))
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			logger, err = NewLogger(step.Logger, NewLoggingContext(workflow, step))
+			logger, err = NewLogger(ctx, step.Logger, NewLoggingContext(workflow, step))
 			if err != nil {
 				return nil, err
 			}
