@@ -161,6 +161,7 @@ The following attributes can be set for the workflow:
 | version  | Any metadata for the workflow | None |
 | steps  | List of all workflow steps (See below) | [] |
 | logger | Workflow Logger | Default Logger (see below) |
+| SessionID | Auto generated 8 digit value for each run of the workflow | |
 
 ## Step Attributes
 
@@ -261,6 +262,14 @@ logger:
 
 The example above, will use `workflow.json` for workflow logs but a file named after the step name for each step. You can use Golang templates for this feature. The template is rendered with a context of `Workflow` and `Step` (in the example above, `.Step` is used)
 
+Another example is to use the Workflow SessionID as log file name:
+
+```yaml
+version: 1
+logger:
+  type: "file"
+  destination: "logs/{{.Workflow.SessionID}}.log"
+```
 
 ### Update
 

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/thanhpk/randstr"
 	"golang.org/x/sync/semaphore"
 	"gopkg.in/yaml.v2"
 )
@@ -35,6 +36,7 @@ type Workflow struct {
 	gatekeeper *semaphore.Weighted
 	signal     *sync.Mutex
 	stopFlag   bool
+	sessionID  string
 }
 
 // LoadWorkflowFromBytes loads a workflow from bytes
@@ -55,6 +57,7 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 		return nil, errors.New("invalid workflow version")
 	}
 
+	workflow.sessionID = randstr.String(8)
 	workflow.gatekeeper = semaphore.NewWeighted(int64(options.Concurrency))
 	workflow.options = options
 	workflow.stopFlag = false
@@ -107,6 +110,10 @@ func LoadWorkflowFromReader(ctx context.Context, options *WorkflowOptions, reade
 	return LoadWorkflowFromBytes(ctx, options, buff)
 }
 
+func (w *Workflow) SessionID() string {
+	return w.sessionID
+}
+
 func (w *Workflow) preflights(ctx context.Context) (preflights []*Preflight) {
 	for kdx, step := range w.Steps {
 		for idx := range step.Preflights {
@@ -137,6 +144,7 @@ func (w *Workflow) preflightChecks(ctx context.Context) error {
 func (w *Workflow) Run(ctx context.Context) (runErrors error, stepErrors error) {
 	// if w.Logger is null, it's going to use the defaults which should be the same as with the app
 	// since the default values from from the same place
+	w.logger.Infof("Running Workflow with Session ID %s", w.sessionID)
 	w.logger.Info("Running Preflight checks")
 	err := w.preflightChecks(ctx)
 	if err != nil {
