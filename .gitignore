@@ -15,3 +15,12 @@
 /publish
 /VERSION
 /build
+/logs/workflow.json
+/logs/trapper.json
+/logs/sleep.json
+/logs/piper.json
+/logs/false.json
+/logs/fail.json
+/logs/env.json
+/logs/dropcheck.json
+/logs/arger.json
