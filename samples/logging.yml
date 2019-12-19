@@ -3,13 +3,11 @@ metadata:
   cloud66.com/uuid: ff97e4c6
   cloud66.com/test: 123
 logger:
-  type: "file"
-  format: "json"
-  destination: "logs/{{ if .Step }}{{.Step.Name}}{{ else }}workflow{{ end }}.json"
+  type: "demux"
+  format: "text"
+  #destination: "logs/{{ if .Step }}{{.Step.Name}}{{ else }}workflow{{ end }}.json"
 steps:
   - name: list
-    logger:
-      type: "stdout"
     command: ls -la
     metadata:
       cloud66.com/uuid: 8e2b4a31

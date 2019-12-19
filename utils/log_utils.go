@@ -8,9 +8,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/spf13/viper"
-
+	"github.com/buger/goterm"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 var fileRegister []*os.File
@@ -113,6 +113,15 @@ func NewLogger(baseDefinition *LogDefinition, loggingContext *LoggingContext) (*
 
 	if definition.Type == "stdout" {
 		logger.SetOutput(os.Stdout)
+	} else if definition.Type == "demux" {
+		goterm.Clear()
+		goTermHook, err := NewGotermHook()
+		if err != nil {
+			return nil, err
+		}
+
+		logger.Hooks.Add(goTermHook)
+		logger.SetOutput(ioutil.Discard)
 	} else if definition.Type == "stderr" {
 		logger.SetOutput(os.Stderr)
 	} else if definition.Type == "discard" {
