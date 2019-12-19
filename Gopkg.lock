@@ -192,6 +192,14 @@
   version = "v1.3.2"
 
 [[projects]]
+  digest = "1:7078327e83236f36a7b676f2ce704dc6ec46f47e52ba9fc2aa32f04be006ac96"
+  name = "github.com/thanhpk/randstr"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6e89fe966579c5905054d46d61cf1621ef291e2c"
+  version = "v1.0.4"
+
+[[projects]]
   branch = "master"
   digest = "1:75515eedc0dc2cb0b40372008b616fa2841d831c63eedd403285ff286c593295"
   name = "golang.org/x/sync"
@@ -242,6 +250,7 @@
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
+    "github.com/thanhpk/randstr",
     "golang.org/x/sync/semaphore",
     "gopkg.in/yaml.v2",
   ]
