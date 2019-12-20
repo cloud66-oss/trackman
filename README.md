@@ -155,13 +155,14 @@ steps:
 ## Workflow Attributes
 
 The following attributes can be set for the workflow:
+
 | Attribute  | Description  | Default  |
 |---|---|---|
 | version  | Workflow format version | `1` |
 | version  | Any metadata for the workflow | None |
 | steps  | List of all workflow steps (See below) | [] |
 | logger | Workflow Logger | Default Logger (see below) |
-| SessionID | Auto generated 8 digit value for each run of the workflow | |
+| SessionID | Auto generated 8 digit value for each run of the workflow | Generated |
 
 ## Step Attributes
 
