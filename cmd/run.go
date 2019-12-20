@@ -10,7 +10,6 @@ import (
 
 	"github.com/cloud66-oss/trackman/notifiers"
 	"github.com/cloud66-oss/trackman/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,14 +39,6 @@ func init() {
 
 func runExec(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
-	level, err := logrus.ParseLevel(viper.GetString("log-level"))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	ctx = context.WithValue(ctx, utils.CtxLogLevel, level)
-	logger, ctx := utils.LoggerContext(ctx)
 
 	options := &utils.WorkflowOptions{
 		Notifier:    notifiers.ConsoleNotify,
@@ -56,6 +47,12 @@ func runExec(cmd *cobra.Command, args []string) {
 	}
 
 	workflow, err := loadWorkflow(ctx, args, options, cmd)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	logger, err := utils.NewLogger(workflow.Logger, utils.NewLoggingContext(workflow, nil))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

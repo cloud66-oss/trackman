@@ -5,10 +5,13 @@ import (
 	"time"
 
 	"github.com/cloud66-oss/trackman/cmd"
+	"github.com/cloud66-oss/trackman/utils"
 )
 
 func main() {
 	defer func() {
+		utils.CloseAllFiles()
+
 		c := make(chan struct{})
 		go func() {
 			defer close(c)
