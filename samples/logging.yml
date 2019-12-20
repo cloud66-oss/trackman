@@ -1,0 +1,54 @@
+version: 1
+metadata:
+  cloud66.com/uuid: ff97e4c6
+  cloud66.com/test: 123
+logger:
+  type: "file"
+  format: "json"
+  destination: "logs/{{ if .Step }}{{.Step.Name}}{{ else }}workflow{{ end }}.json"
+steps:
+  - name: list
+    logger:
+      type: "stdout"
+    command: ls -la
+    metadata:
+      cloud66.com/uuid: 8e2b4a31
+    preflights:
+      - command: true
+        message: "Oh nose!"
+  - name: env
+    command: echo $USER
+  - name: false
+    command: false
+    continue_on_fail: true
+  - name: fail
+    command: fail
+    metadata:
+      cloud66.com/uuid: 8e2b4a3e
+    continue_on_fail: true
+  - name: sleep
+    command: sleep 30
+    timeout: 1s
+    metadata:
+      cloud66.com/uuid: 547c8a3c
+    continue_on_fail: true
+  - name: trapper
+    workdir: "$HOME/work/go/src/github.com/cloud66-oss/trackman/samples"
+    command: ruby trapper.rb
+    timeout: 1s
+    continue_on_fail: true
+  - name: piper
+    workdir: "$HOME/work/go/src/github.com/cloud66-oss/trackman/samples"
+    command: ruby piper.rb
+  - name: dropcheck
+    timeout: 3s
+    workdir: "$HOME/work/go/src/github.com/cloud66-oss/trackman/samples"
+    command: ruby filer.rb
+    probe:
+      command: ruby probe.rb
+    continue_on_fail: true
+  - name: arger
+    metadata:
+      cloud66.com/uuid: arger-123
+    workdir: "$HOME/work/go/src/github.com/cloud66-oss/trackman/samples"
+    command: "ruby arger.rb hello {{ index .MergedMetadata \"cloud66.com/test\" }}"

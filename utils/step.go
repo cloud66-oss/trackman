@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -18,7 +20,7 @@ const (
 
 // StepOptions provides options for a Step
 type StepOptions struct {
-	Notifier func(ctx context.Context, event *Event) error
+	Notifier func(ctx context.Context, logger *logrus.Logger, event *Event) error
 }
 
 // Step is a single running Step
@@ -36,9 +38,11 @@ type Step struct {
 	AskToProceed   bool              `yaml:"ask_to_proceed" json:"ask_to_proceed"`
 	ShowCommand    bool              `yaml:"show_command" json:"show_command"`
 	Disabled       bool              `yaml:"disabled" json:"disabled"`
+	Logger         *LogDefinition    `yaml:"logger" json:"logger"`
 
 	options   *StepOptions
 	workflow  *Workflow
+	logger    *logrus.Logger
 	status    int
 	dependsOn []*Step
 }
@@ -144,10 +148,8 @@ func (s *Step) Run(ctx context.Context) error {
 	s.status = stepRunning
 	defer func() { s.status = stepDone }()
 
-	logger, ctx := LoggerContext(ctx)
-
 	if s.Disabled {
-		logger.WithField(FldStep, s.Name).Info("Disabled step. Skipping")
+		s.logger.WithField(FldStep, s.Name).Info("Disabled step. Skipping")
 		return nil
 	}
 
@@ -171,7 +173,7 @@ func (s *Step) Run(ctx context.Context) error {
 			return err
 		}
 
-		logger.WithField(FldStep, spinner.Name).Error(err)
+		s.logger.WithField(FldStep, spinner.Name).Error(err)
 	}
 
 	// main spinner is done. we should use the probe to check if
@@ -192,7 +194,7 @@ func (s *Step) Run(ctx context.Context) error {
 				return err
 			}
 
-			logger.WithField(FldStep, probeSpinner.Name).Error(err)
+			s.logger.WithField(FldStep, probeSpinner.Name).Error(err)
 		}
 	}
 

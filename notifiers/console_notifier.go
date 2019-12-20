@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/cloud66-oss/trackman/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // ConsoleNotify writes notifications to console
-func ConsoleNotify(ctx context.Context, event *utils.Event) error {
-	logger, _ := utils.LoggerContext(ctx)
-
+func ConsoleNotify(ctx context.Context, logger *logrus.Logger, event *utils.Event) error {
 	switch event.Name {
 	case utils.EventRunRequested:
 		logger.WithField(utils.FldStep, event.Payload.Spinner.Name).Info("Starting")

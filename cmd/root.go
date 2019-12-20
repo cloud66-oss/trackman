@@ -29,9 +29,15 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.trackman.yaml)")
 	rootCmd.PersistentFlags().String("log-level", "info", "log level. Use debug to see process output")
+	rootCmd.PersistentFlags().String("log-type", "stdout", "log type. Valid values are stdout, stderr, discard and file")
+	rootCmd.PersistentFlags().String("log-format", "text", "log format. Valid values are text and json")
+	rootCmd.PersistentFlags().String("log-file", "trackman.log", "file path for logs. Only used when log-type is file")
 	rootCmd.PersistentFlags().Bool("no-update", false, "turn off auto update")
 
 	_ = viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
+	_ = viper.BindPFlag("log-file", rootCmd.PersistentFlags().Lookup("log-file"))
+	_ = viper.BindPFlag("log-type", rootCmd.PersistentFlags().Lookup("log-type"))
+	_ = viper.BindPFlag("log-format", rootCmd.PersistentFlags().Lookup("log-format"))
 	_ = viper.BindPFlag("no-update", rootCmd.PersistentFlags().Lookup("no-update"))
 }
 

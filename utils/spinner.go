@@ -160,13 +160,13 @@ func (s *Spinner) Run(ctx context.Context) error {
 	cmdCtx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
-	logger, ctx := LoggerContext(ctx)
+	logger := s.step.logger
 
 	// add this spinner to the context for the log writers
 	ctx = context.WithValue(ctx, CtxSpinner, s)
 
-	outChannel := NewLogWriter(ctx, logrus.DebugLevel)
-	errChannel := NewLogWriter(ctx, logrus.ErrorLevel)
+	outChannel := NewLogWriter(ctx, logger, logrus.DebugLevel)
+	errChannel := NewLogWriter(ctx, logger, logrus.ErrorLevel)
 
 	logger.WithField(FldStep, s.Name).Tracef("Running %s with %s", s.cmd, s.args)
 
@@ -217,7 +217,7 @@ func (s *Spinner) Run(ctx context.Context) error {
 }
 
 func (s *Spinner) push(ctx context.Context, event *Event) {
-	err := s.step.options.Notifier(ctx, event)
+	err := s.step.options.Notifier(ctx, s.step.logger, event)
 	if err != nil {
 		fmt.Println(err)
 	}

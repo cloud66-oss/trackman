@@ -18,7 +18,7 @@ type Preflight struct {
 
 // Run runs the preflight
 func (p *Preflight) Run(ctx context.Context) error {
-	logger, _ := LoggerContext(ctx)
+	logger := p.step.logger
 	logger.WithField(FldStep, fmt.Sprintf("%s.preflight", p.step.Name)).Tracef("Running preflight")
 	spinner, err := NewSpinnerForPreflight(ctx, p)
 	if err != nil {
