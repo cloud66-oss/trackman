@@ -97,32 +97,6 @@ func (s *Step) shouldRun() bool {
 	return true
 }
 
-func (s *Step) parseCommand(ctx context.Context) error {
-	buf := &bytes.Buffer{}
-	tmpl, err := template.New("t1").Parse(s.Command)
-	if err != nil {
-		return err
-	}
-
-	err = tmpl.Execute(buf, s)
-	if err != nil {
-		return err
-	}
-
-	s.Command = buf.String()
-
-	return nil
-}
-
-func (s *Step) expandEnvVars(ctx context.Context) {
-	expandedCommand := os.ExpandEnv(s.Command)
-	s.Command = expandedCommand
-
-	if s.Workdir != "" {
-		s.Workdir = os.ExpandEnv(s.Workdir)
-	}
-}
-
 func (s *Step) isDone() bool {
 	return s.status == stepDone
 }
@@ -153,13 +127,10 @@ func (s *Step) Run(ctx context.Context) error {
 		return nil
 	}
 
-	err := s.parseCommand(ctx)
+	err := s.EnrichStep(ctx)
 	if err != nil {
-		// a failure here is down to workflow errors so
-		// continue on failure doesn't apply
 		return err
 	}
-	s.expandEnvVars(ctx)
 
 	spinner, err := NewSpinnerForStep(ctx, *s)
 	if err != nil {
@@ -199,4 +170,137 @@ func (s *Step) Run(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// EnrichStep resolves environment variables and parses the command for the step
+// on all applicable attributes
+func (s *Step) EnrichStep(ctx context.Context) error {
+	var err error
+	// parse for meta data
+	if s.Command, err = s.parseAttribute(ctx, s.Command); err != nil {
+		return err
+	}
+	if s.Name, err = s.parseAttribute(ctx, s.Name); err != nil {
+		return err
+	}
+	if s.Workdir, err = s.parseAttribute(ctx, s.Workdir); err != nil {
+		return err
+	}
+	if s.Probe != nil {
+		if s.Probe.Command, err = s.parseAttribute(ctx, s.Probe.Command); err != nil {
+			return err
+		}
+		if s.Probe.Workdir, err = s.parseAttribute(ctx, s.Probe.Workdir); err != nil {
+			return err
+		}
+	}
+	if s.Logger != nil {
+		if s.Logger.Destination, err = s.parseAttribute(ctx, s.Logger.Destination); err != nil {
+			return err
+		}
+		if s.Logger.Format, err = s.parseAttribute(ctx, s.Logger.Format); err != nil {
+			return err
+		}
+		if s.Logger.Level, err = s.parseAttribute(ctx, s.Logger.Level); err != nil {
+			return err
+		}
+		if s.Logger.Type, err = s.parseAttribute(ctx, s.Logger.Type); err != nil {
+			return err
+		}
+	}
+	if s.Preflights != nil {
+		for idx, preFlight := range s.Preflights {
+			if s.Preflights[idx].Command, err = s.parseAttribute(ctx, preFlight.Command); err != nil {
+				return err
+			}
+			if s.Preflights[idx].Workdir, err = s.parseAttribute(ctx, preFlight.Workdir); err != nil {
+				return err
+			}
+			if s.Preflights[idx].Message, err = s.parseAttribute(ctx, preFlight.Message); err != nil {
+				return err
+			}
+		}
+	}
+
+	// expand env var
+	if s.Command, err = expandEnvVars(ctx, s.Command); err != nil {
+		return err
+	}
+	if s.Workdir, err = expandEnvVars(ctx, s.Workdir); err != nil {
+		return err
+	}
+	if s.Command, err = expandEnvVars(ctx, s.Command); err != nil {
+		return err
+	}
+	if s.Name, err = expandEnvVars(ctx, s.Name); err != nil {
+		return err
+	}
+	if s.Workdir, err = expandEnvVars(ctx, s.Workdir); err != nil {
+		return err
+	}
+	if s.Probe != nil {
+		if s.Probe.Command, err = expandEnvVars(ctx, s.Probe.Command); err != nil {
+			return err
+		}
+		if s.Probe.Workdir, err = expandEnvVars(ctx, s.Probe.Workdir); err != nil {
+			return err
+		}
+	}
+	if s.Logger != nil {
+		if s.Logger.Destination, err = expandEnvVars(ctx, s.Logger.Destination); err != nil {
+			return err
+		}
+		if s.Logger.Format, err = expandEnvVars(ctx, s.Logger.Format); err != nil {
+			return err
+		}
+		if s.Logger.Level, err = expandEnvVars(ctx, s.Logger.Level); err != nil {
+			return err
+		}
+		if s.Logger.Type, err = expandEnvVars(ctx, s.Logger.Type); err != nil {
+			return err
+		}
+	}
+	if s.Preflights != nil {
+		for idx, preFlight := range s.Preflights {
+			if s.Preflights[idx].Command, err = expandEnvVars(ctx, preFlight.Command); err != nil {
+				return err
+			}
+			if s.Preflights[idx].Workdir, err = expandEnvVars(ctx, preFlight.Workdir); err != nil {
+				return err
+			}
+			if s.Preflights[idx].Message, err = expandEnvVars(ctx, preFlight.Message); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *Step) parseAttribute(ctx context.Context, value string) (string, error) {
+	if value == "" {
+		return "", nil
+	}
+
+	buf := &bytes.Buffer{}
+	tmpl, err := template.New("step").Parse(value)
+	if err != nil {
+		return "", err
+	}
+
+	err = tmpl.Execute(buf, s)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
+}
+
+func expandEnvVars(ctx context.Context, value string) (string, error) {
+	if value == "" {
+		return "", nil
+	}
+
+	expandedCommand := os.ExpandEnv(value)
+	return expandedCommand, nil
 }

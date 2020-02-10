@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -62,7 +63,7 @@ func NewLoggingContext(workflow *Workflow, step *Step) *LoggingContext {
 }
 
 // Parse parses the given value within this context.
-func (l *LoggingContext) Parse(value string) (string, error) {
+func (l *LoggingContext) parse(value string) (string, error) {
 	temp, err := template.New("filename").Parse(value)
 	if err != nil {
 		return "", err
@@ -107,6 +108,7 @@ func DefaultLogDefinition(baseDefinition *LogDefinition) *LogDefinition {
 
 // NewLogger creates a new logger instance and sets the right log level based
 func NewLogger(baseDefinition *LogDefinition, loggingContext *LoggingContext) (*logrus.Logger, error) {
+	ctx := context.Background()
 	definition := DefaultLogDefinition(baseDefinition)
 
 	logger := logrus.New()
@@ -118,10 +120,15 @@ func NewLogger(baseDefinition *LogDefinition, loggingContext *LoggingContext) (*
 	} else if definition.Type == "discard" {
 		logger.SetOutput(ioutil.Discard)
 	} else if definition.Type == "file" {
-		filename, err := loggingContext.Parse(definition.Destination)
-		if err != nil {
+		var filename string
+		var err error
+		if filename, err = loggingContext.parse(definition.Destination); err != nil {
 			return nil, err
 		}
+		if filename, err = expandEnvVars(ctx, filename); err != nil {
+			return nil, err
+		}
+
 		file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 		if err != nil {
 			return nil, err
