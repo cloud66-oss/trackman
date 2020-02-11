@@ -1,0 +1,8 @@
+version: 1
+context_builder:
+  command: curl -s "https://gist.githubusercontent.com/khash/2dc37e1504752b36239948cd79cd77b2/raw/e0a16db9b004ce04dc7d62b9af375499f2c342f7/remote_control.json"
+steps:
+  - first:
+    name: first
+    command: "bash -c 'echo {{ index .DynamicContext \"run\"}}'"
+

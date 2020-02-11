@@ -117,6 +117,55 @@ Trackman can use Golang template language.
 
 `Metadata` is an attribute on both Step and the entire workflow. You can use `MergedMetadata` instead of `Metadata` to gain access to a merged list of meta data from the step and the workflow. If any value is defined in both places, step will override workflow.
 
+### Dynamic Context
+
+Sometimes you migt want to inject some values into your workflow based on a context. For example, you might want to set a command's parameter based on a value that's on an external URL, or perhaps want to use the result of a command and merge it with the parameters that are running in your workflow.
+
+In the example below, I'm pull a JSON from a Github Gist and use a value in there as a parameter to a command I'm running:
+
+```yaml
+version: 1
+context_builder:
+  command: curl -s "https://gist.githubusercontent.com/khash/2dc37e1504752b36239948cd79cd77b2/raw/e0a16db9b004ce04dc7d62b9af375499f2c342f7/remote_control.json"
+steps:
+  - first:
+    name: first
+    command: "bash -c 'echo {{ index .DynamicContext \"run\"}}'"
+```
+
+This will show the value of the `run` attribute from the JSON it fetches from that URL.
+
+Normally, the workflow will fail if `context_builder` command fails (this runs just like a step). However if you prefer it to still return a value in case of failure and continue the run, you can use the `fail_context`:
+
+```yaml
+version: 1
+context_builder:
+  command: curl -s --fail "https://gist.githubusercontent.com/khash/2dc37e1504752b36239948cd79cd77b2/raw/e0a16db9b004ce04dc7d62b9af375499f2c342f7/remote_control.json"
+  fail_context:
+    run: false
+steps:
+  - first:
+    name: first
+    command: "bash -c 'echo {{ index .DynamicContext \"run\"}}'"
+```
+
+This will continue to run the workflow but with `run=false`. Please see the files in the `samples` folder for more examples.
+
+
+## ContextBuilder Attributes
+
+The following attributes can be set for the context_builder:
+
+| Attribute  | Description  | Default  |
+|---|---|---|
+| command  | Command to run | None |
+| workdir  | Work directory for the given command | None |
+| format  | Expected result type: json or yaml | `json` |
+| timeout | Command timeout | Defaults to workflow timeout |
+| env | Command's environment variables | |
+| fail_context | Any data to be returned in case ContextBuilder fails | None |
+
+
 ### Work directory
 
 To set the working directory of a step, use `workdir` attribute on a step.

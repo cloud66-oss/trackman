@@ -1,0 +1,8 @@
+version: 1
+context_builder:
+  command: curl -s --fail "https://raw.githubusercontent.com/hleofxquotes/mnyjson/master/json/sunsetSample/accounts/Woodgrove_Bank_Savings/wrong.json"
+  fail_context:
+    accountType: "failed"
+steps:
+  - first:
+    command: "{{ index .DynamicContext \"accountType\" }}"
