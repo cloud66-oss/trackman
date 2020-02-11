@@ -57,6 +57,11 @@ func (s *Step) String() string {
 	return str + "\n" + strings.Join(deps, ",")
 }
 
+// DynamicContext returns the workflow's dynamic context
+func (s *Step) DynamicContext() map[string]interface{} {
+	return s.workflow.DynamicContext()
+}
+
 // MergedMetadata merges step and workflow metadata
 func (s *Step) MergedMetadata() map[string]string {
 	if s.Metadata == nil {

@@ -10,6 +10,8 @@ import (
 const (
 	// FldStep is a logger field
 	FldStep = "Step"
+	// FldContextBuilder is a logger field
+	FldContextBuilder = "ContextBuilder"
 )
 
 // LogWriter implements io.Writer so it can be used to dump a process output

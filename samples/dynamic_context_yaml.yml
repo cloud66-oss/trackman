@@ -1,0 +1,7 @@
+version: 1
+context_builder:
+  command: curl -s "https://raw.githubusercontent.com/GoogleCloudPlatform/kubernetes-engine-samples/master/hello-app/manifests/helloweb-deployment.yaml"
+  format: yaml
+steps:
+  - first:
+    command: "{{ (((index .DynamicContext \"spec\").selector).matchLabels).app }}"

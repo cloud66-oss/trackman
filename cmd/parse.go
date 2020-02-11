@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/cloud66-oss/trackman/notifiers"
 	"github.com/cloud66-oss/trackman/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
 
@@ -23,6 +25,9 @@ var (
 
 func init() {
 	parseCmd.Flags().StringVarP(&parsingWorkflowFile, "file", "f", "", "workflow file to parse")
+	parseCmd.Flags().DurationP("timeout", "", 10*time.Second, "global timeout unless overwritten by a step")
+
+	_ = viper.BindPFlag("timeout", parseCmd.Flags().Lookup("timeout"))
 
 	rootCmd.AddCommand(parseCmd)
 }
@@ -31,7 +36,9 @@ func parseExec(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 
 	options := &utils.WorkflowOptions{
-		Notifier: notifiers.ConsoleNotify,
+		Notifier:    notifiers.ConsoleNotify,
+		Concurrency: 1,
+		Timeout:     viper.GetDuration("timeout"),
 	}
 
 	workflow, err := loadWorkflow(ctx, args, options, cmd)
@@ -39,12 +46,6 @@ func parseExec(cmd *cobra.Command, args []string) {
 		utils.PrintError(err.Error())
 		os.Exit(1)
 	}
-
-	// logger, err := utils.NewLogger(workflow.Logger, utils.NewLoggingContext(workflow, nil))
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	os.Exit(1)
-	// }
 
 	for _, step := range workflow.Steps {
 		if err = step.EnrichStep(ctx); err != nil {

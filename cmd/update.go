@@ -37,7 +37,7 @@ func update(silent bool) {
 	})
 	if err != nil {
 		if !silent {
-			fmt.Println(err)
+			utils.PrintError(err.Error())
 			os.Exit(1)
 		}
 
@@ -47,7 +47,7 @@ func update(silent bool) {
 	err = worker.Run(viper.GetString("channel") != utils.Channel)
 	if err != nil {
 		if !silent {
-			fmt.Println(err)
+			utils.PrintError(err.Error())
 			os.Exit(1)
 		}
 

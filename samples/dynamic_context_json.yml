@@ -1,0 +1,6 @@
+version: 1
+context_builder:
+  command: curl -s "https://raw.githubusercontent.com/hleofxquotes/mnyjson/master/json/sunsetSample/accounts/Woodgrove_Bank_Savings/account.json"
+steps:
+  - first:
+    command: "{{ index .DynamicContext \"accountType\" }}"

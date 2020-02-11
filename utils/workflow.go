@@ -28,17 +28,19 @@ type WorkflowOptions struct {
 
 // Workflow is the internal object to hold a workflow file
 type Workflow struct {
-	Version  string            `yaml:"version" json:"version"`
-	Metadata map[string]string `yaml:"metadata" json:"metadata"`
-	Steps    []*Step           `yaml:"steps" json:"steps"`
-	Logger   *LogDefinition    `yaml:"logger" json:"logger"`
+	Version        string                 `yaml:"version" json:"version"`
+	Metadata       map[string]string      `yaml:"metadata" json:"metadata"`
+	Steps          []*Step                `yaml:"steps" json:"steps"`
+	Logger         *LogDefinition         `yaml:"logger" json:"logger"`
+	ContextBuilder *DynamicContextBuilder `yaml:"context_builder" json:"context_builder"`
 
-	options    *WorkflowOptions
-	logger     *logrus.Logger
-	gatekeeper *semaphore.Weighted
-	signal     *sync.Mutex
-	stopFlag   bool
-	sessionID  string
+	options        *WorkflowOptions
+	logger         *logrus.Logger
+	gatekeeper     *semaphore.Weighted
+	signal         *sync.Mutex
+	stopFlag       bool
+	sessionID      string
+	dynamicContext map[string]interface{}
 }
 
 // LoadWorkflowFromBytes loads a workflow from bytes
@@ -70,6 +72,22 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 		return nil, err
 	}
 	workflow.logger = logger
+
+	// run the context builder
+	if workflow.ContextBuilder != nil {
+		workflow.ContextBuilder.workflow = workflow
+		workflow.ContextBuilder.Validate(ctx)
+
+		workflow.ContextBuilder.spinner, err = NewSpinnerForDynamicContextBuilder(ctx, workflow)
+		if err != nil {
+			return nil, err
+		}
+
+		workflow.dynamicContext, err = workflow.ContextBuilder.Run(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	// validate depends on and link them to the step
 	// TODO: check for circular dependencies
@@ -104,6 +122,11 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 	}
 
 	return workflow, nil
+}
+
+// DynamicContext returns the values of the loaded dynamic context (loaded by ContextBuilder)
+func (w *Workflow) DynamicContext() map[string]interface{} {
+	return w.dynamicContext
 }
 
 // LoadWorkflowFromReader loads a workflow from an io reader

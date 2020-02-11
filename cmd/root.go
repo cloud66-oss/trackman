@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -47,7 +46,7 @@ func initConfig() {
 	} else {
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(err)
+			utils.PrintError(err.Error())
 			os.Exit(1)
 		}
 
@@ -74,7 +73,7 @@ func checkForUpdates(cmd *cobra.Command, args []string) {
 // Execute main cobra entry point
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		utils.PrintError(err.Error())
 		os.Exit(1)
 	}
 }

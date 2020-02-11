@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"runtime"
@@ -48,19 +47,19 @@ func runExec(cmd *cobra.Command, args []string) {
 
 	workflow, err := loadWorkflow(ctx, args, options, cmd)
 	if err != nil {
-		fmt.Println(err)
+		utils.PrintError(err.Error())
 		os.Exit(1)
 	}
 
 	logger, err := utils.NewLogger(workflow.Logger, utils.NewLoggingContext(workflow, nil))
 	if err != nil {
-		fmt.Println(err)
+		utils.PrintError(err.Error())
 		os.Exit(1)
 	}
 
 	err, stepErrors := workflow.Run(ctx)
 	if err != nil {
-		logger.Error(err)
+		utils.PrintError(err.Error())
 		os.Exit(1)
 	}
 

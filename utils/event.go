@@ -19,6 +19,8 @@ const (
 	EventRunTimeout = "run.timeout"
 	// EventRunningProbe announces probing
 	EventRunningProbe = "run.probing"
+	// EventParsingDynamicContext announces dymamic context has run and the results are being parsed
+	EventParsingDynamicContext = "parse.context"
 )
 
 // Event is a simple event
