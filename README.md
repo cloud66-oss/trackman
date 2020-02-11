@@ -272,6 +272,14 @@ logger:
   destination: "logs/{{.Workflow.SessionID}}.log"
 ```
 
+### Parse
+
+You can use the `parse` command to see how the workflow input yaml file is parsed and what the placeholders (like environment variables) are replaced with before running them. Use `parse` like `run` but without any `timeout` or `concurrency` options:
+
+```bash
+$ trackman parse -f workflow.yml
+```
+
 ### Update
 
 Manually checks for updates. It can also switch the current release channel.
