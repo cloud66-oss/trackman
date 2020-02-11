@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"sync"
@@ -97,6 +99,10 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 		step.logger = logger
 	}
 
+	if err = workflow.EnrichWorkflow(ctx); err != nil {
+		return workflow, err
+	}
+
 	return workflow, nil
 }
 
@@ -110,6 +116,7 @@ func LoadWorkflowFromReader(ctx context.Context, options *WorkflowOptions, reade
 	return LoadWorkflowFromBytes(ctx, options, buff)
 }
 
+// SessionID returns the session id of this run for the workflow
 func (w *Workflow) SessionID() string {
 	return w.sessionID
 }
@@ -272,4 +279,47 @@ func (w *Workflow) shouldStop(ctx context.Context) bool {
 	defer w.signal.Unlock()
 
 	return w.stopFlag
+}
+
+// EnrichWorkflow parses and replaces any placeholders in the workflow
+func (w *Workflow) EnrichWorkflow(ctx context.Context) error {
+	var err error
+
+	// meta data first
+	if w.Metadata != nil {
+		for idx, metadata := range w.Metadata {
+			if w.Metadata[idx], err = w.parseAttribute(ctx, metadata); err != nil {
+				return err
+			}
+		}
+	}
+
+	if w.Metadata != nil {
+		for idx, metadata := range w.Metadata {
+			if w.Metadata[idx], err = ExpandEnvVars(ctx, metadata); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (w *Workflow) parseAttribute(ctx context.Context, value string) (string, error) {
+	if value == "" {
+		return "", nil
+	}
+
+	buf := &bytes.Buffer{}
+	tmpl, err := template.New("workflow").Parse(value)
+	if err != nil {
+		return "", err
+	}
+
+	err = tmpl.Execute(buf, w)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

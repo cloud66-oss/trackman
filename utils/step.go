@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"html/template"
-	"os"
 	"strings"
 	"time"
 
@@ -176,7 +175,15 @@ func (s *Step) Run(ctx context.Context) error {
 // on all applicable attributes
 func (s *Step) EnrichStep(ctx context.Context) error {
 	var err error
+
 	// parse for meta data
+	if s.Metadata != nil {
+		for idx, metadata := range s.Metadata {
+			if s.Metadata[idx], err = s.parseAttribute(ctx, metadata); err != nil {
+				return err
+			}
+		}
+	}
 	if s.Command, err = s.parseAttribute(ctx, s.Command); err != nil {
 		return err
 	}
@@ -223,52 +230,59 @@ func (s *Step) EnrichStep(ctx context.Context) error {
 	}
 
 	// expand env var
-	if s.Command, err = expandEnvVars(ctx, s.Command); err != nil {
+	if s.Metadata != nil {
+		for idx, metadata := range s.Metadata {
+			if s.Metadata[idx], err = ExpandEnvVars(ctx, metadata); err != nil {
+				return err
+			}
+		}
+	}
+	if s.Command, err = ExpandEnvVars(ctx, s.Command); err != nil {
 		return err
 	}
-	if s.Workdir, err = expandEnvVars(ctx, s.Workdir); err != nil {
+	if s.Workdir, err = ExpandEnvVars(ctx, s.Workdir); err != nil {
 		return err
 	}
-	if s.Command, err = expandEnvVars(ctx, s.Command); err != nil {
+	if s.Command, err = ExpandEnvVars(ctx, s.Command); err != nil {
 		return err
 	}
-	if s.Name, err = expandEnvVars(ctx, s.Name); err != nil {
+	if s.Name, err = ExpandEnvVars(ctx, s.Name); err != nil {
 		return err
 	}
-	if s.Workdir, err = expandEnvVars(ctx, s.Workdir); err != nil {
+	if s.Workdir, err = ExpandEnvVars(ctx, s.Workdir); err != nil {
 		return err
 	}
 	if s.Probe != nil {
-		if s.Probe.Command, err = expandEnvVars(ctx, s.Probe.Command); err != nil {
+		if s.Probe.Command, err = ExpandEnvVars(ctx, s.Probe.Command); err != nil {
 			return err
 		}
-		if s.Probe.Workdir, err = expandEnvVars(ctx, s.Probe.Workdir); err != nil {
+		if s.Probe.Workdir, err = ExpandEnvVars(ctx, s.Probe.Workdir); err != nil {
 			return err
 		}
 	}
 	if s.Logger != nil {
-		if s.Logger.Destination, err = expandEnvVars(ctx, s.Logger.Destination); err != nil {
+		if s.Logger.Destination, err = ExpandEnvVars(ctx, s.Logger.Destination); err != nil {
 			return err
 		}
-		if s.Logger.Format, err = expandEnvVars(ctx, s.Logger.Format); err != nil {
+		if s.Logger.Format, err = ExpandEnvVars(ctx, s.Logger.Format); err != nil {
 			return err
 		}
-		if s.Logger.Level, err = expandEnvVars(ctx, s.Logger.Level); err != nil {
+		if s.Logger.Level, err = ExpandEnvVars(ctx, s.Logger.Level); err != nil {
 			return err
 		}
-		if s.Logger.Type, err = expandEnvVars(ctx, s.Logger.Type); err != nil {
+		if s.Logger.Type, err = ExpandEnvVars(ctx, s.Logger.Type); err != nil {
 			return err
 		}
 	}
 	if s.Preflights != nil {
 		for idx, preFlight := range s.Preflights {
-			if s.Preflights[idx].Command, err = expandEnvVars(ctx, preFlight.Command); err != nil {
+			if s.Preflights[idx].Command, err = ExpandEnvVars(ctx, preFlight.Command); err != nil {
 				return err
 			}
-			if s.Preflights[idx].Workdir, err = expandEnvVars(ctx, preFlight.Workdir); err != nil {
+			if s.Preflights[idx].Workdir, err = ExpandEnvVars(ctx, preFlight.Workdir); err != nil {
 				return err
 			}
-			if s.Preflights[idx].Message, err = expandEnvVars(ctx, preFlight.Message); err != nil {
+			if s.Preflights[idx].Message, err = ExpandEnvVars(ctx, preFlight.Message); err != nil {
 				return err
 			}
 		}
@@ -294,13 +308,4 @@ func (s *Step) parseAttribute(ctx context.Context, value string) (string, error)
 	}
 
 	return buf.String(), nil
-}
-
-func expandEnvVars(ctx context.Context, value string) (string, error) {
-	if value == "" {
-		return "", nil
-	}
-
-	expandedCommand := os.ExpandEnv(value)
-	return expandedCommand, nil
 }

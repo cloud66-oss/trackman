@@ -9,9 +9,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/spf13/viper"
-
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 var fileRegister []*os.File
@@ -125,7 +124,7 @@ func NewLogger(baseDefinition *LogDefinition, loggingContext *LoggingContext) (*
 		if filename, err = loggingContext.parse(definition.Destination); err != nil {
 			return nil, err
 		}
-		if filename, err = expandEnvVars(ctx, filename); err != nil {
+		if filename, err = ExpandEnvVars(ctx, filename); err != nil {
 			return nil, err
 		}
 

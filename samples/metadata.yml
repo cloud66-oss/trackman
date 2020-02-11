@@ -1,8 +1,10 @@
 version: 1
 metadata:
   some_key: $HOME/ff97e4c6
+  another_key: "{{ index .Metadata \"some_key\" }}_derived"
 steps:
   - name: meta
     metadata:
       step_key: $HOME/hello
-    command: "{{ index .MergedMetadata \"step_key\" }}/middle/{{ index .MergedMetadata \"some_key\"}}"
+      second_key: "{{ index .Metadata \"step_key\" }}"
+    command: "{{ index .MergedMetadata \"step_key\" }}/middle/{{ index .MergedMetadata \"another_key\"}}"
