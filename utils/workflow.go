@@ -21,9 +21,10 @@ import (
 
 // WorkflowOptions provides options for a workflow
 type WorkflowOptions struct {
-	Notifier    func(ctx context.Context, logger *logrus.Logger, event *Event) error
-	Concurrency int
-	Timeout     time.Duration
+	Notifier      func(ctx context.Context, logger *logrus.Logger, event *Event) error
+	Concurrency   int
+	Timeout       time.Duration
+	LogDefinition *LogDefinition
 }
 
 // Workflow is the internal object to hold a workflow file
@@ -64,6 +65,11 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 	workflow.options = options
 	workflow.stopFlag = false
 	workflow.signal = &sync.Mutex{}
+	// no logger defined on the workflow, then use the one on the options.
+	// if nothing is defined there either, then NewLogger will fallback onto the cli params
+	if workflow.Logger == nil {
+		workflow.Logger = options.LogDefinition
+	}
 
 	logger, err := NewLogger(workflow.Logger, NewLoggingContext(workflow, nil))
 	if err != nil {
