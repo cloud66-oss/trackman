@@ -9,6 +9,7 @@ import (
 	"os"
 	"sync"
 
+	halo "github.com/cloud-66-internal/halo/client"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -32,8 +33,10 @@ type LogDefinition struct {
 // LoggingContext is a structure that holds workflow and step
 // and is used to determine log configuration
 type LoggingContext struct {
-	Workflow *Workflow
-	Step     *Step
+	Workflow   *Workflow
+	Step       *Step
+
+	haloClient *halo.Client // used only for logging to Halo
 }
 
 func addFile(file *os.File) {
@@ -93,7 +96,11 @@ func DefaultLogDefinition(baseDefinition *LogDefinition) *LogDefinition {
 		definition.Type = viper.GetString("log-type")
 	}
 	if definition.Destination == "" {
-		definition.Destination = viper.GetString("log-file")
+		if definition.Type == "halo" {
+			definition.Destination = viper.GetString("log-halo-address")
+		} else {
+			definition.Destination = viper.GetString("log-file")
+		}
 	}
 	if definition.Format == "" {
 		definition.Format = viper.GetString("log-format")
@@ -118,6 +125,21 @@ func NewLogger(baseDefinition *LogDefinition, loggingContext *LoggingContext) (*
 		logger.SetOutput(os.Stderr)
 	} else if definition.Type == "discard" {
 		logger.SetOutput(ioutil.Discard)
+	} else if definition.Type == "halo" {
+		options, err := halo.ParseConnectionString(baseDefinition.Destination)		
+		if err != nil {
+			return nil, err
+		}
+		c, err := halo.Connect(ctx, options)
+		if err != nil {
+			return nil, err
+		}
+		haloWriter, err := halo.NewHaloWriter(ctx, loggingContext.Workflow.sessionID, options)
+		if err != nil {
+			return nil, err
+		}
+		loggingContext.haloClient = c
+		logger.SetOutput(haloWriter)
 	} else if definition.Type == "file" {
 		var filename string
 		var err error

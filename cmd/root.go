@@ -33,12 +33,14 @@ func init() {
 	rootCmd.PersistentFlags().String("log-format", "text", "log format. Valid values are text and json")
 	rootCmd.PersistentFlags().String("log-file", "trackman.log", "file path for logs. Only used when log-type is file")
 	rootCmd.PersistentFlags().Bool("no-update", false, "turn off auto update")
+	rootCmd.PersistentFlags().String("log-halo-address", "", "Halo address using Halo connection string format")
 
 	_ = viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
 	_ = viper.BindPFlag("log-file", rootCmd.PersistentFlags().Lookup("log-file"))
 	_ = viper.BindPFlag("log-type", rootCmd.PersistentFlags().Lookup("log-type"))
 	_ = viper.BindPFlag("log-format", rootCmd.PersistentFlags().Lookup("log-format"))
 	_ = viper.BindPFlag("no-update", rootCmd.PersistentFlags().Lookup("no-update"))
+	_ = viper.BindPFlag("log-halo-address", rootCmd.PersistentFlags().Lookup("log-halo-address"))
 }
 
 func initConfig() {
