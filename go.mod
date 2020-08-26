@@ -3,7 +3,7 @@ module github.com/cloud66-oss/trackman
 go 1.15
 
 require (
-	github.com/cloud-66-internal/halo v0.0.0-20200826130411-14f49a4ae2ce
+	github.com/cloud-66-internal/halo v0.0.0-20200826131719-b4c56b45adea
 	github.com/fatih/color v1.9.0
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-multierror v1.0.0
