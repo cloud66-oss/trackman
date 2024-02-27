@@ -24,6 +24,7 @@ type WorkflowOptions struct {
 	Notifier    func(ctx context.Context, logger *logrus.Logger, event *Event) error
 	Concurrency int
 	Timeout     time.Duration
+	Metadata    map[string]string
 }
 
 // Workflow is the internal object to hold a workflow file
