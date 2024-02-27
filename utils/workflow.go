@@ -66,6 +66,9 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 	workflow.stopFlag = false
 	workflow.signal = &sync.Mutex{}
 
+	// merge options metadata with yaml
+	workflow.Metadata = mergeMaps(workflow.Metadata, workflow.options.Metadata, true)
+
 	logger, err := NewLogger(workflow.Logger, NewLoggingContext(workflow, nil))
 	if err != nil {
 		return nil, err
