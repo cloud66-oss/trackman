@@ -101,7 +101,7 @@ steps:
   - name: list
     metadata:
       fuzz: buzz
-    command: ls la
+    command: ls -la
 ```
 
 You can use the metadata as arguments of a step:
@@ -184,6 +184,7 @@ The following attributes can be set for each step:
 | disabled | Disables the step (doesn't run it). This can be used for debugging or other selective workflow manipulations | `false` |
 | env | Environment variables specific to this step | [] |
 | logger | Step logger | Workflow logger (see below) |
+| SessionID | Auto generated 8 digit value for each run of the workflow | Same as Workflow |
 
 ## Trackman CLI
 
@@ -206,6 +207,8 @@ Runs the given workflow. Use `--help` for more details.
 
 ```bash
 $ trackman run -f file.yml
+
+$ trackman run -f file.yml -m key1=value -m key2=value
 ```
 
 ### Params
@@ -218,6 +221,7 @@ Run command supports the following options
 | timeout | Timeout after which the step will be stopped. A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 10 seconds |
 | concurrency  | Number of concurrent steps to run | Number of CPUs - 1 |
 | yes, y  | Answer Yes to all `ask_to_proceed` questions | false |
+| metadata, m  | Inline global metadata | None |
 
 ### Logging
 
