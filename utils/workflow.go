@@ -74,6 +74,7 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 	// validate depends on and link them to the step
 	// TODO: check for circular dependencies
 	for idx, step := range workflow.Steps {
+		workflow.Steps[idx].SessionID = workflow.SessionID()
 		workflow.Steps[idx].workflow = workflow
 		for _, priorStepName := range step.DependsOn {
 			priorStep := workflow.findStepByName(priorStepName)

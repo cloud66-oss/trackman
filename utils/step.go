@@ -38,6 +38,7 @@ type Step struct {
 	ShowCommand    bool              `yaml:"show_command" json:"show_command"`
 	Disabled       bool              `yaml:"disabled" json:"disabled"`
 	Logger         *LogDefinition    `yaml:"logger" json:"logger"`
+	SessionID      string
 
 	options   *StepOptions
 	workflow  *Workflow
