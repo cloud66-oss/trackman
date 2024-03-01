@@ -24,6 +24,7 @@ type WorkflowOptions struct {
 	Notifier    func(ctx context.Context, logger *logrus.Logger, event *Event) error
 	Concurrency int
 	Timeout     time.Duration
+	Metadata    map[string]string
 }
 
 // Workflow is the internal object to hold a workflow file
@@ -65,6 +66,9 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 	workflow.stopFlag = false
 	workflow.signal = &sync.Mutex{}
 
+	// merge options metadata with yaml
+	workflow.Metadata = mergeMaps(workflow.Metadata, workflow.options.Metadata, true)
+
 	logger, err := NewLogger(workflow.Logger, NewLoggingContext(workflow, nil))
 	if err != nil {
 		return nil, err
@@ -74,6 +78,7 @@ func LoadWorkflowFromBytes(ctx context.Context, options *WorkflowOptions, buff [
 	// validate depends on and link them to the step
 	// TODO: check for circular dependencies
 	for idx, step := range workflow.Steps {
+		workflow.Steps[idx].SessionID = workflow.SessionID()
 		workflow.Steps[idx].workflow = workflow
 		for _, priorStepName := range step.DependsOn {
 			priorStep := workflow.findStepByName(priorStepName)
